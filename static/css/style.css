@@ -793,7 +793,7 @@ body{
 /* ================= WORLD ================= */
 
 .world-stage{
-  height:620px;
+  height:480px;
   border-radius:14px;
   border:1px solid var(--border);
   position:relative;
@@ -817,10 +817,10 @@ body{
 
 .island{
   position:absolute;
-  width:520px;
-  height:549px;
+  width:400px;
+  height:422px;
   left:50%;
-  bottom:62px;
+  bottom:34px;
   transform:translateX(-50%);
   transform-origin:center bottom;
   background:url('../img/floating-island.png') no-repeat center/contain;
@@ -845,10 +845,10 @@ body{
 
 .island-house{
   position:absolute;
-  left:146px;
-  top:72px;
-  width:78px;
-  height:80px;
+  left:158px;
+  top:78px;
+  width:82px;
+  height:84px;
   background:url('../img/house-world.png') no-repeat center/contain;
   border-radius:0;
   z-index:4
@@ -887,37 +887,37 @@ body{
 }
 
 .badge-1{
-  left:213px;
-  top:178px
+  left:246px;
+  top:169px
 }
 
 .badge-2{
-  left:345px;
-  top:229px;
+  left:352px;
+  top:206px;
   width:42px
 }
 
 .badge-3{
-  left:389px;
-  top:269px;
+  left:388px;
+  top:238px;
   width:42px
 }
 
 .badge-4{
-  left:349px;
-  top:322px;
+  left:356px;
+  top:283px;
   width:42px
 }
 
 .badge-5{
-  left:279px;
-  top:337px;
+  left:300px;
+  top:296px;
   width:42px
 }
 
 .badge-6{
-  left:179px;
-  top:330px;
+  left:222px;
+  top:290px;
   width:42px
 }
 
@@ -1322,7 +1322,7 @@ body{
     grid-template-columns:1fr
   }
 
-  .world-stage{height:620px}
+  .world-stage{height:480px}
 
   .talk-side,
   .onepct-side,
@@ -1372,7 +1372,7 @@ body{
 
   .home-quote{font-size:9px}
 
-  .world-stage{height:330px}
+  .world-stage{height:300px}
 
   .island{
     transform:translateX(-50%) scale(.62)
