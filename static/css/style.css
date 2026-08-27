@@ -2624,7 +2624,7 @@ body.troca-open{overflow:hidden}
   display:flex;
   gap:8px;
   max-width:1000px;
-  margin:16px auto 0;
+  margin:28px auto 22px;
   border-bottom:1px solid var(--border);
 }
 .world-tab{
@@ -2639,7 +2639,6 @@ body.troca-open{overflow:hidden}
 }
 .world-tab:hover,.world-tab.active{
   color:var(--brand);
-  border-bottom-color:var(--brand);
 }
 .benefit-note{
   margin-top:9px;
