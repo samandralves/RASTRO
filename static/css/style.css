@@ -985,7 +985,7 @@ body{
   border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.02);
   border-radius:12px;
-  padding:16px 6px;
+  padding:10px 6px;
   text-align:center;
   opacity:.35;
   filter:grayscale(1);
@@ -994,7 +994,8 @@ body{
   align-items:center;
   justify-content:center;
   gap:7px;
-  min-height:96px
+  aspect-ratio:1/1;
+  width:100%
 }
 
 .unlocks button.unlocked{
