@@ -960,52 +960,70 @@ body{
 }
 
 .world-card{
-  padding:18px
+  padding:22px
 }
 
 .world-card h2{
-  font:600 18px Space Grotesk,sans-serif;
-  margin-bottom:8px
+  font:600 21px Space Grotesk,sans-serif;
+  margin-bottom:9px
 }
 
 .world-card>p:not(.eyebrow){
-  font-size:10.5px;
-  line-height:1.55;
+  font-size:12.5px;
+  line-height:1.6;
   color:var(--muted);
-  margin-bottom:16px
+  margin-bottom:20px
 }
 
 .unlocks{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:7px
+  gap:10px
 }
 
-.unlocks span{
+.unlocks button{
   border:1px solid rgba(255,255,255,.08);
-  border-radius:9px;
-  padding:8px 4px;
+  background:rgba(255,255,255,.02);
+  border-radius:12px;
+  padding:16px 6px;
   text-align:center;
   opacity:.35;
-  filter:grayscale(1)
+  filter:grayscale(1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:96px
 }
 
-.unlocks span.unlocked{
+.unlocks button.unlocked{
   opacity:1;
   filter:none;
-  border-color:rgba(79,224,179,.2)
+  border-color:rgba(79,224,179,.2);
+  background:rgba(79,224,179,.04)
 }
 
 .unlocks b{
-  display:block;
-  font-size:20px
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  line-height:1
 }
 
 .unlocks small{
   display:block;
   color:#8b9ab6;
-  font-size:7px;
-  margin-top:3px
+  font-size:9.5px;
+  line-height:1.3;
+  margin-top:2px
+}
+
+.badge-icon-img{
+  width:60px;
+  height:60px;
+  object-fit:contain
 }
 
 .secret-layout{
