@@ -2623,7 +2623,8 @@ body.troca-open{overflow:hidden}
 .world-tabs{
   display:flex;
   gap:8px;
-  margin-top:16px;
+  max-width:1000px;
+  margin:16px auto 0;
   border-bottom:1px solid var(--border);
 }
 .world-tab{
@@ -2632,6 +2633,9 @@ body.troca-open{overflow:hidden}
   text-decoration:none;
   font:600 10px "Space Grotesk",sans-serif;
   border-bottom:2px solid transparent;
+}
+.world-tab:first-child{
+  padding-left:0
 }
 .world-tab:hover,.world-tab.active{
   color:var(--brand);
