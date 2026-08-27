@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Mundo Real{% endblock %}
+{% block content %}
+<section class="screen world-real-screen">
+  <div class="screen-heading"><p class="eyebrow">WORLD · MUNDO REAL</p><h1>O que faz você querer sair e descobrir?</h1><p>Escolha seus interesses para o Rastro encontrar lugares de Belo Horizonte que combinam com você.</p></div>
+  <form class="questionnaire-card" method="post">
+    <div class="interest-grid">
+      {% for key,label in interests.items() %}
+      <div class="interest-option"><input id="interest-{{ key }}" type="checkbox" name="interests" value="{{ key }}" {{ 'checked' if key in selected }}><label for="interest-{{ key }}">{{ label }}</label></div>
+      {% endfor %}
+    </div>
+    <button class="primary-btn" type="submit">Ver meu Mundo Real</button>
+  </form>
+</section>
+{% endblock %}

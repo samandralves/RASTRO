@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}início{% endblock %}
+{% block content %}
+<section class="dashboard">
+  <div class="greeting">
+    <div>
+      <p class="eyebrow">SEU RASTRO</p>
+      <h1>Olá, que bom te ver por aqui! <span>🌙</span></h1>
+      <p>Como você está se sentindo hoje?</p>
+    </div>
+  </div>
+
+  <div class="mood-grid" id="mood-grid">
+    {% for mood, emoji in [('muito mal','😣'),('mal','😠'),('mais ou menos','😐'),('bem','🙂'),('muito bem','😊')] %}
+    <button class="mood-card {{ 'selected' if current_mood == mood }}" data-mood="{{ mood }}">
+      <span>{{ emoji }}</span><small>{{ mood }}</small>
+    </button>
+    {% endfor %}
+  </div>
+  <p class="checkin-feedback" id="checkin-feedback"></p>
+
+  <div class="dashboard-grid top-cards">
+    <article class="dash-card talk-card">
+      <div class="card-icon green">◌</div>
+      <p class="eyebrow">TALK</p>
+      <h2>Entenda melhor o que está acontecendo.</h2>
+      <p>Conte do seu jeito. O Rastro encontra a barreira e transforma o que você sente em um próximo passo possível.</p>
+      <a class="primary-btn" href="{{ url_for('talk') }}">Conversar no Talk</a>
+    </article>
+
+    <article class="dash-card one-card">
+      <div class="card-icon sun">✦</div>
+      <p class="eyebrow sun-text">1%</p>
+      <h2>Seu próximo 1%.</h2>
+      <p>Pequenas ações para aproximar você daquilo que quer conseguir.</p>
+      <a class="primary-btn" href="{{ url_for('onepct') }}">Ver meu 1%</a>
+    </article>
+  </div>
+
+  <div class="dashboard-grid bottom-cards">
+    <article class="dash-card world-card">
+      <div class="card-top">
+        <div>
+          <p class="eyebrow">WORLD</p>
+          <h2>Seu mundo cresce com cada passo que você dá.</h2>
+        </div>
+        <span class="small-link">{{ points }} pts</span>
+      </div>
+      <div class="mini-world">
+        {% for emoji, label in world_elements %}
+          <span class="mini-world-item">{{ emoji }}</span>
+        {% endfor %}
+        {% if not world_elements %}<span class="mini-empty">🌱</span>{% endif %}
+      </div>
+      <a class="outline-btn" href="{{ url_for('world') }}">Explorar</a>
+    </article>
+
+    <article class="dash-card secret-card">
+      <div class="card-icon dusk">▣</div>
+      <p class="eyebrow dusk-text">SECRET</p>
+      <h2>Você não está sozinho.</h2>
+      <p>Compartilhe algo anonimamente e descubra quantas pessoas poderiam dizer: <strong>eu também.</strong></p>
+      <a class="outline-btn" href="{{ url_for('secret') }}">Entrar no Secret</a>
+    </article>
+  </div>
+
+  <div class="home-quote">
+    <span>✧</span>
+    <strong>Você não precisa mudar tudo hoje.<br>Melhorar 1% já é progresso.</strong>
+    <span>✧</span>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>RastroHome.init();</script>{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Voluntariado{% endblock %}
+{% block content %}
+<section class="screen talk-screen">
+  <div class="screen-heading">
+    <p class="eyebrow">VOLUNTARIADO</p>
+    <h1>Conte o que você quer conversar.</h1>
+    <p>Vamos ler com cuidado e te encaminhar da forma mais adequada — não precisa ser um texto longo.</p>
+  </div>
+
+  <div class="talk-layout">
+    <div class="talk-main">
+      <form id="volunteer-form" class="side-card">
+        <textarea id="volunteer-text" rows="6" placeholder="Escreva aqui o que está acontecendo..." style="width:100%;resize:vertical;"></textarea>
+        <button type="submit" class="send-btn" style="margin-top:12px;">Enviar</button>
+      </form>
+      <div id="volunteer-result"></div>
+      <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional. Em emergências, ligue 192 (SAMU) ou vá ao pronto-socorro mais próximo.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>RastroVolunteer.init();</script>{% endblock %}

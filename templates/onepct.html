@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}1%{% endblock %}
+{% block content %}
+<section class="screen one-screen">
+  <div class="screen-heading">
+    <p class="eyebrow sun-text">1%</p>
+    <h1>Seu 1% deste ciclo</h1>
+    <p>Pequenas ações diárias que constroem sua meta semanal — e a semanal constrói a meta do mês.</p>
+  </div>
+
+  {% if state == 'pendente' %}
+  <div class="onepct-layout">
+    <div class="onepct-main">
+      <div class="insight-card">
+        <p class="eyebrow sun-text">EM REVISÃO</p>
+        <h2>Seu novo bloco de metas está sendo preparado.</h2>
+        <p>A partir do que você contou no TALK ({{ draft.objective }} · {{ draft.barrier }}), já geramos um bloco
+        completo de metas para o seu próximo ciclo. Ele está aguardando aprovação da nossa equipe antes de
+        aparecer aqui — isso costuma ser rápido.</p>
+      </div>
+    </div>
+  </div>
+
+  {% elif state == 'ativo' %}
+  <div class="onepct-layout">
+    <div class="onepct-main">
+      <div class="onepct-banner">
+        <span class="big-one">{{ cycle.cycle_number }}º</span>
+        <div><strong>Ciclo em andamento</strong><small>{{ cycle.completed_items }}/145 metas concluídas · {{ cycle.progress_percent() }}%</small></div>
+        <span class="spark">✦</span>
+      </div>
+
+      <div class="goal monthly-goal {{ 'done' if cycle.monthly_done }}" data-kind="monthly" data-id="{{ cycle.id }}" tabindex="0">
+        <span class="goal-emoji">🌕</span>
+        <div class="goal-content"><strong>Meta do mês</strong><small>{{ cycle.monthly_text }}</small></div>
+        <span class="goal-points">+{{ points.monthly }} pts</span>
+        <span class="goal-check">{{ '✓' if cycle.monthly_done else '' }}</span>
+      </div>
+
+      {% for weekly in cycle.weekly_goals %}
+      <div class="weekly-block {{ 'locked' if not weekly.unlocked }}">
+        {% if weekly.unlocked %}
+        <div class="goal weekly-goal {{ 'done' if weekly.done }}" data-kind="weekly" data-id="{{ weekly.id }}" tabindex="0">
+          <span class="goal-emoji">🪐</span>
+          <div class="goal-content"><strong>Semana {{ weekly.order }}</strong><small>{{ weekly.text }}</small></div>
+          <span class="goal-points">+{{ points.weekly }} pts</span>
+          <span class="goal-check">{{ '✓' if weekly.done else '' }}</span>
+        </div>
+        {% else %}
+        <div class="goal weekly-goal locked-card">
+          <span class="goal-emoji">🔒</span>
+          <div class="goal-content"><strong>Semana {{ weekly.order }}</strong><small>Desbloqueia ao concluir mais metas</small></div>
+        </div>
+        {% endif %}
+
+        {% if weekly.daily_available %}
+        {% for day in range(1, 8) %}
+        <details class="day-group" {{ 'open' if loop.first }}>
+          <summary>Dia {{ day }}</summary>
+          <div class="goal-list">
+            {% for d in weekly.daily_goals if d.day_number == day %}
+            <div class="goal {{ 'done' if d.done }}" data-kind="daily" data-id="{{ d.id }}" tabindex="0">
+              <span class="goal-emoji">🎯</span>
+              <div class="goal-content"><strong>{{ d.text }}</strong></div>
+              <span class="goal-points">+{{ points.daily }} pts</span>
+              <span class="goal-check">{{ '✓' if d.done else '' }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </details>
+        {% endfor %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="onepct-side">
+      <div class="insight-card">
+        <p class="eyebrow sun-text">SEU CONTEXTO</p>
+        <h2>{{ cycle.objective|title }}</h2>
+        <p>O Rastro escolheu essas ações a partir da barreira:</p>
+        <strong>{{ cycle.barrier }}</strong>
+      </div>
+      <div class="quote-card side-card">
+        <span>✦</span><p>Você não precisa terminar.<br><strong>Precisa começar.</strong></p>
+      </div>
+    </aside>
+  </div>
+
+  {% else %}
+  <div class="onepct-layout">
+    <div class="onepct-main">
+      <div class="insight-card">
+        <p class="eyebrow sun-text">AINDA SEM METAS</p>
+        <h2>Termine sua conversa no TALK pra receber seu primeiro bloco de metas.</h2>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script>RastroCycle.init();</script>{% endblock %}

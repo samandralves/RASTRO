@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RASTRO — painel do voluntário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body>
+<canvas id="starfield"></canvas>
+<main class="volunteer-panel-page">
+  <header class="volunteer-panel-header">
+    <div><p class="eyebrow">PAINEL DO VOLUNTÁRIO</p><h1>Olá, {{ volunteer.name }}.</h1></div>
+    <a class="outline-btn" href="{{ url_for('volunteer_logout') }}">Sair</a>
+  </header>
+  {% with messages = get_flashed_messages() %}{% if messages %}<div class="side-card" style="margin-bottom:14px;">{{ messages[-1] }}</div>{% endif %}{% endwith %}
+  <section>
+    <div class="screen-heading"><p class="eyebrow">FILA DE ATENDIMENTO</p><h2>Pedidos disponíveis</h2><p>Priorize os casos mais urgentes e assuma um atendimento quando estiver pronto.</p></div>
+    <div class="volunteer-ticket-grid">
+      {% for t in tickets %}
+      <article class="volunteer-ticket {{ 'critical' if t.urgency in ('critica','alta') }}">
+        <span class="urgency">{{ t.urgency }}</span>
+        <h3>Atendimento #{{ t.id }}</h3>
+        <p class="description">{{ t.description }}</p>
+        <p style="font-size:9px;color:var(--muted);">Status: {{ t.status }} · {{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+        {% if t.volunteer_id == volunteer.id and t.status == 'em_atendimento' %}
+        <form class="volunteer-close-form" method="post" action="{{ url_for('volunteer_close_ticket', ticket_id=t.id) }}">
+          <textarea name="closing_note" rows="4" placeholder="Anotação do atendimento e encaminhamento..." required></textarea>
+          <button class="primary-btn" type="submit">Encerrar atendimento</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('volunteer_assume_ticket', ticket_id=t.id) }}"><button class="outline-btn" type="submit">Assumir atendimento</button></form>
+        {% endif %}
+      </article>
+      {% else %}<div class="side-card">Não há atendimentos disponíveis neste momento.</div>{% endfor %}
+    </div>
+  </section>
+  <section class="volunteer-history">
+    <div class="screen-heading"><p class="eyebrow">HISTÓRICO</p><h2>Atendimentos encerrados</h2></div>
+    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Ticket</th><th>Urgência</th><th>Data</th><th>Anotação</th><th>Status</th></tr></thead><tbody>
+    {% for t in history %}<tr><td>#{{ t.id }}</td><td>{{ t.urgency }}</td><td>{{ t.updated_at.strftime('%d/%m/%Y %H:%M') if t.updated_at else '—' }}</td><td>{{ t.closing_note or t.admin_note or '—' }}</td><td>{{ t.status }}</td></tr>
+    {% else %}<tr><td colspan="5">Nenhum atendimento encerrado.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</main>
+<script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
+</body></html>

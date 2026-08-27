@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RASTRO — painel administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+
+  <div class="admin-page">
+    <header class="admin-header">
+      <div class="admin-header-brand">
+        <img src="{{ url_for('static', filename='img/logo-rastro.png') }}" alt="Rastro">
+        <div><strong>Painel administrativo</strong><small>Registro do banco de dados e estatísticas de uso</small></div>
+      </div>
+      <a class="outline-btn" href="{{ url_for('logout') }}">Sair</a>
+    </header>
+
+    <main class="admin-main">
+      <section class="admin-stats">
+        <div><strong>{{ total_users }}</strong><small>Usuários cadastrados</small></div>
+        <div><strong>{{ total_points }}</strong><small>Pontos somados</small></div>
+        <div><strong>{{ avg_points }}</strong><small>Pontos por usuário (média)</small></div>
+        <div><strong>{{ total_checkins }}</strong><small>Check-ins de humor</small></div>
+        <div><strong>{{ total_goals_done }}</strong><small>Metas do 1% concluídas</small></div>
+        <div><strong>{{ total_secret_posts }}</strong><small>Posts no Secret</small></div>
+      </section>
+
+      <section class="admin-grid">
+        <div class="admin-card">
+          <p class="eyebrow">USUÁRIOS POR ETAPA DESBLOQUEADA</p>
+          <div class="admin-bars">
+            {% for label, count in stage_counts.items() %}
+            <div class="admin-bar-row">
+              <span>{{ label }}</span>
+              <div class="admin-bar-track"><span style="width:{{ (count / total_users * 100) if total_users else 0 }}%"></span></div>
+              <strong>{{ count }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <p class="eyebrow">CHECK-INS POR HUMOR</p>
+          <div class="admin-bars">
+            {% for mood, count in mood_counts.items() %}
+            <div class="admin-bar-row">
+              <span>{{ mood }}</span>
+              <div class="admin-bar-track"><span style="width:{{ (count / total_checkins * 100) if total_checkins else 0 }}%"></span></div>
+              <strong>{{ count }}</strong>
+            </div>
+            {% endfor %}
+            {% if not mood_counts %}<p class="admin-empty">Ainda não há check-ins registrados.</p>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card admin-table-card">
+        <p class="eyebrow">BLOCOS DE METAS AGUARDANDO APROVAÇÃO ({{ pending_drafts|length }})</p>
+        {% if not pending_drafts %}
+        <p class="admin-empty">Nenhum rascunho pendente no momento.</p>
+        {% endif %}
+        {% for d in pending_drafts %}
+        {% set payload = d.payload() %}
+        <div class="admin-card" style="margin-top:12px;">
+          <p><strong>{{ d.user.name }}</strong> — ciclo #{{ d.cycle_number }} · objetivo: {{ d.objective }} · barreira: {{ d.barrier }} · gerado por: {{ 'IA' if d.source == 'ia' else 'regras (fallback)' }}</p>
+          <p><strong>Mensal:</strong> {{ payload.monthly }}</p>
+          <p><strong>Semanais:</strong></p>
+          <ol>
+            {% for w in payload.weekly %}<li>{{ w }}</li>{% endfor %}
+          </ol>
+          <details>
+            <summary>Ver as 140 metas diárias</summary>
+            {% for week in payload.daily %}
+            <p><strong>Semana {{ loop.index }}</strong></p>
+            <ol>{% for text in week %}<li>{{ text }}</li>{% endfor %}</ol>
+            {% endfor %}
+          </details>
+          <form method="post" action="{{ url_for('admin_draft_aprovar', draft_id=d.id) }}" style="display:inline;">
+            <button class="outline-btn" type="submit">Aprovar e liberar</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_draft_rejeitar', draft_id=d.id) }}" style="display:inline;">
+            <input type="text" name="note" placeholder="motivo (opcional)">
+            <button class="outline-btn" type="submit">Rejeitar</button>
+          </form>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="admin-grid">
+        <div class="admin-card">
+          <p class="eyebrow">INSATISFAÇÃO POR CONTEXTO (ANÔNIMO, {{ total_satisfaction }} respostas)</p>
+          <div class="admin-bars">
+            {% for context, percent in satisfaction_percent.items() %}
+            <div class="admin-bar-row">
+              <span>{{ context|title }}</span>
+              <div class="admin-bar-track"><span style="width:{{ percent }}%"></span></div>
+              <strong>{{ percent }}% ({{ satisfaction_by_context[context] }})</strong>
+            </div>
+            {% endfor %}
+            {% if not satisfaction_by_context %}<p class="admin-empty">Ainda não há respostas registradas.</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <p class="eyebrow">O 1% TEM AJUDADO? ({{ total_feedback }} respostas)</p>
+          <div class="admin-bars">
+            {% for label, count in feedback_counts.items() %}
+            <div class="admin-bar-row">
+              <span>{{ label|title }}</span>
+              <div class="admin-bar-track"><span style="width:{{ (count / total_feedback * 100) if total_feedback else 0 }}%"></span></div>
+              <strong>{{ count }}</strong>
+            </div>
+            {% endfor %}
+            {% if not total_feedback %}<p class="admin-empty">Ainda não há feedback registrado.</p>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card admin-table-card">
+        <p class="eyebrow">VOLUNTARIADO — TICKETS ({{ tickets|length }} recentes)</p>
+        <div class="admin-bars" style="margin-bottom:16px;">
+          {% for urgency, count in ticket_urgency_counts.items() %}
+          <div class="admin-bar-row">
+            <span>{{ urgency|title }}</span>
+            <div class="admin-bar-track"><span style="width:{{ (count / tickets|length * 100) if tickets|length else 0 }}%"></span></div>
+            <strong>{{ count }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Usuário</th><th>Urgência</th><th>Status</th><th>Descrição</th><th>Universidade/voluntário</th><th>Ação</th></tr></thead>
+            <tbody>
+              {% for t in tickets %}
+              <tr>
+                <td>{{ t.user.name }}</td>
+                <td>{{ t.urgency }}</td>
+                <td>{{ t.status }}</td>
+                <td style="max-width:280px;">{{ t.description[:180] }}{{ '…' if t.description|length > 180 }}</td>
+                <td>{{ t.partner_university or '—' }} {{ t.volunteer_name or '' }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_ticket_atualizar', ticket_id=t.id) }}" style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <select name="status">
+                      <option value="fila" {{ 'selected' if t.status=='fila' }}>fila</option>
+                      <option value="em_atendimento" {{ 'selected' if t.status=='em_atendimento' }}>em atendimento</option>
+                      <option value="encerrado" {{ 'selected' if t.status=='encerrado' }}>encerrado</option>
+                      <option value="encaminhado_cvv" {{ 'selected' if t.status=='encaminhado_cvv' }}>encaminhado CVV</option>
+                    </select>
+                    <select name="volunteer_id">
+                      <option value="">sem voluntário</option>
+                      {% for v in volunteers if v.active %}
+                      <option value="{{ v.id }}" {{ 'selected' if t.volunteer_id == v.id }}>{{ v.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <input type="text" name="partner_university" placeholder="universidade">
+                    <button class="outline-btn" type="submit">Salvar</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if not tickets %}<tr><td colspan="6" class="admin-empty">Nenhum ticket registrado ainda.</td></tr>{% endif %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <section class="admin-grid">
+        <div class="admin-card">
+          <p class="eyebrow">CRIAR VOLUNTÁRIO</p>
+          <form method="post" action="{{ url_for('admin_create_volunteer') }}" class="admin-form-grid">
+            <input type="text" name="name" placeholder="Nome" required>
+            <input type="email" name="email" placeholder="E-mail" required>
+            <input type="password" name="password" placeholder="Senha (mín. 6)" minlength="6" required>
+            <button class="outline-btn" type="submit">Criar voluntário</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <p class="eyebrow">VOLUNTÁRIOS ATIVOS</p>
+          <div class="admin-bars">
+            {% for v in volunteers %}
+            <div class="admin-bar-row" style="grid-template-columns:1fr auto auto;">
+              <span>{{ v.name }} · {{ v.email }} · {{ 'ativo' if v.active else 'inativo' }}</span>
+              <form method="post" action="{{ url_for('admin_toggle_volunteer', volunteer_id=v.id) }}">
+                <button class="outline-btn" type="submit">{{ 'Desativar' if v.active else 'Ativar' }}</button>
+              </form>
+            </div>
+            {% endfor %}
+            {% if not volunteers %}<p class="admin-empty">Nenhum voluntário cadastrado.</p>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card admin-table-card">
+        <p class="eyebrow">REGISTRO DE USUÁRIOS</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Nome</th><th>E-mail</th><th>Cadastro</th><th>Último login</th>
+                <th>Pontos</th><th>Check-ins</th><th>1% feitos</th>
+                <th>Etapas desbloqueadas</th><th>Admin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+              <tr>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.created_at.strftime('%d/%m/%Y') if u.created_at else '—' }}</td>
+                <td>{{ u.last_login_at.strftime('%d/%m/%Y %H:%M') if u.last_login_at else '—' }}</td>
+                <td>{{ u.points }}</td>
+                <td>{{ u.checkins }}</td>
+                <td>{{ u.monthly_cycles | sum(attribute='completed_items') }}</td>
+                <td>
+                  {% set unlocked = u.unlocked_map() %}
+                  TALK{% if unlocked.onepct %} · 1%{% endif %}{% if unlocked.world %} · WORLD{% endif %}{% if unlocked.secret %} · SECRET{% endif %}{% if unlocked.perfil %} · PERFIL{% endif %}
+                </td>
+                <td>{{ 'sim' if u.is_admin else '—' }}</td>
+              </tr>
+              {% endfor %}
+              {% if not users %}
+              <tr><td colspan="9" class="admin-empty">Nenhum usuário cadastrado ainda.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
+</body>
+</html>
