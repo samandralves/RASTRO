@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+% extends "base.html" %}
 {% block title %}WORLD{% endblock %}
 {% block content %}
 <section class="screen world-screen">
@@ -7,6 +7,8 @@
     <h1>Seu mundo cresce com cada passo que você dá.</h1>
     <p>O que você faz deixa uma marca visível no seu Rastro.</p>
   </div>
+
+  <div class="world-tabs"><a class="world-tab active" href="{{ url_for('world') }}">Meu Mundo</a><a class="world-tab" href="{{ url_for('world_real') }}">Mundo Real</a></div>
 
   <div class="world-layout">
     <div class="world-main">
@@ -86,7 +88,7 @@
       <span class="obtido-spark spark-b">✦</span>
     </div>
     <h3 id="obtido-title">🍃 Item obtido! 🍃</h3>
-    <div class="obtido-divider"><span>♥</span></div>
+    <div class="obtido-divider"><span>♥️</span></div>
     <div class="obtido-icon-box" id="obtido-icon"></div>
     <p class="obtido-name" id="obtido-name"></p>
     <p class="obtido-rarity">Item comum</p>
