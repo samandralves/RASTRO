@@ -181,10 +181,6 @@
       island.drawEllipse(-30, -30, 70, 14);
       island.endFill();
 
-      island.filters = [new PIXI.DropShadowFilter
-        ? new PIXI.filters.DropShadowFilter({ blur: 6, distance: 12, alpha: 0.35, rotation: 90 })
-        : null].filter(Boolean);
-
       this.islandRoot.addChild(island);
       this.island = island;
       this.worldRoot.addChild(this.islandRoot);
