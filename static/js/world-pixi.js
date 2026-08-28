@@ -25,7 +25,7 @@
 (function () {
   "use strict";
 
-  const ISLAND_IMAGE_URL = "/static/img/island.png";
+  const ISLAND_IMAGE_URL = "/static/img/island-main.png";
   const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
   const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
 
@@ -36,8 +36,8 @@
     {
       key: "house",
       url: "/static/img/house.png",
-      baseWidth: 118,
-      offset: { x: -40, y: -68 },
+      baseWidth: 95,
+      offset: { x: -34, y: -56 },
       anchor: { x: 0.5, y: 1 },
       label: "Sua casinha no mundo — cresce junto com você.",
       idle: "smoke",
@@ -45,8 +45,8 @@
     {
       key: "tree",
       url: "/static/img/tree.png",
-      baseWidth: 96,
-      offset: { x: 90, y: -38 },
+      baseWidth: 78,
+      offset: { x: 74, y: -30 },
       anchor: { x: 0.5, y: 1 },
       label: "Uma árvore que cresce a cada meta concluída.",
       idle: "sway",
@@ -54,8 +54,8 @@
     {
       key: "pond",
       url: "/static/img/pond.png",
-      baseWidth: 118,
-      offset: { x: -66, y: 30 },
+      baseWidth: 96,
+      offset: { x: -54, y: 24 },
       anchor: { x: 0.5, y: 0.62 },
       label: "Um lago calmo pra respirar entre uma tarefa e outra.",
       idle: "shimmer",
@@ -63,8 +63,8 @@
     {
       key: "bench",
       url: "/static/img/bench.png",
-      baseWidth: 90,
-      offset: { x: 56, y: 36 },
+      baseWidth: 74,
+      offset: { x: 46, y: 30 },
       anchor: { x: 0.5, y: 0.78 },
       label: "Um banco pra sentar e olhar o quanto você já andou.",
       idle: null,
