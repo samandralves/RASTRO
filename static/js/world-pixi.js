@@ -36,8 +36,8 @@
     {
       key: "house",
       url: "/static/img/house.png",
-      baseWidth: 132,
-      offset: { x: -42, y: -86 },
+      baseWidth: 118,
+      offset: { x: -40, y: -68 },
       anchor: { x: 0.5, y: 1 },
       label: "Sua casinha no mundo — cresce junto com você.",
       idle: "smoke",
@@ -45,8 +45,8 @@
     {
       key: "tree",
       url: "/static/img/tree.png",
-      baseWidth: 108,
-      offset: { x: 98, y: -46 },
+      baseWidth: 96,
+      offset: { x: 90, y: -38 },
       anchor: { x: 0.5, y: 1 },
       label: "Uma árvore que cresce a cada meta concluída.",
       idle: "sway",
@@ -54,8 +54,8 @@
     {
       key: "pond",
       url: "/static/img/pond.png",
-      baseWidth: 132,
-      offset: { x: -78, y: 34 },
+      baseWidth: 118,
+      offset: { x: -66, y: 30 },
       anchor: { x: 0.5, y: 0.62 },
       label: "Um lago calmo pra respirar entre uma tarefa e outra.",
       idle: "shimmer",
@@ -63,8 +63,8 @@
     {
       key: "bench",
       url: "/static/img/bench.png",
-      baseWidth: 104,
-      offset: { x: 64, y: 40 },
+      baseWidth: 90,
+      offset: { x: 56, y: 36 },
       anchor: { x: 0.5, y: 0.78 },
       label: "Um banco pra sentar e olhar o quanto você já andou.",
       idle: null,
@@ -281,6 +281,11 @@
           this._initSmoke(sprite, item);
         }
       }
+
+      // ponto mais alto entre todos os itens (coordenada local, antes da
+      // escala do islandRoot) — usado no _layout pra nunca cortar nada no topo
+      const bounds = this.decorLayer.getLocalBounds();
+      this._decorTopLocal = bounds.y;
     }
 
     // ---------------------------------------------------- interatividade --
@@ -486,11 +491,24 @@
       if (!this.islandRoot) return;
 
       this.islandRoot.x = w / 2;
-      this._baseIslandY = h * 0.62;
-      this.islandRoot.y = this._baseIslandY;
 
       const scale = Math.min(1, w / 640);
-      this.islandRoot.scale.set(Math.max(scale, 0.55));
+      const islandScale = Math.max(scale, 0.55);
+      this.islandRoot.scale.set(islandScale);
+
+      // posição vertical "ideal" (mesma conta de sempre)
+      let baseY = h * 0.62;
+
+      // mas nunca deixa o item mais alto (a casa) passar do topo do palco —
+      // se passaria, empurra a ilha pra baixo até caber com uma margem de 24px
+      const TOP_MARGIN = 24;
+      if (this._decorTopLocal !== undefined) {
+        const minY = TOP_MARGIN - this._decorTopLocal * islandScale;
+        if (baseY < minY) baseY = minY;
+      }
+
+      this._baseIslandY = baseY;
+      this.islandRoot.y = baseY;
     }
   }
 
