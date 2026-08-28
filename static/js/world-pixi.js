@@ -1,14 +1,22 @@
 /**
  * world-pixi.js
  *
- * Dia 1 do mundo interativo: cena base em PixiJS. A ilha vem de uma
- * imagem (static/img/island-base.png) em vez de ser desenhada em
- * código — troque o path abaixo se mudar o nome/local do arquivo.
+ * Dia 1 do mundo interativo: cena base em PixiJS. A ilha e os elementos
+ * decorativos (casa, árvore, banco e lago) vêm de imagens recortadas
+ * (fundo removido) em static/img/ — troque os paths abaixo se mudar o
+ * nome/local dos arquivos.
  *
  * ISLAND_TARGET_WIDTH controla o tamanho final da ilha. O halo (brilho
- * atrás da ilha) e a casa escalam junto automaticamente, proporcionais
- * a esse valor, pra não ficar desproporcional quando você mudar o
- * tamanho da ilha.
+ * atrás da ilha) e todos os elementos decorativos escalam junto
+ * automaticamente, proporcionais a esse valor, pra não ficar
+ * desproporcional quando você mudar o tamanho da ilha.
+ *
+ * Elementos decorativos (casa, árvore, banco, lago) são interativos:
+ *   - hover: dá um leve "zoom" e um brilho na base do elemento
+ *   - clique: dá uma pequena animação de "pulo" e mostra um balão de
+ *     texto com uma frase curta sobre o elemento
+ *   - a árvore balança sutilmente sozinha; a casa solta fumacinha
+ *     pela chaminé
  *
  * Paleta reaproveitada das variáveis do projeto (style.css):
  *   --brand:#4fe0b3  --sun:#f7bd6a  --dusk:#b8a6ef  --bg:#03091a
@@ -17,9 +25,51 @@
 (function () {
   "use strict";
 
-  const ISLAND_IMAGE_URL = "/static/img/island-base.png";
+  const ISLAND_IMAGE_URL = "/static/img/island.png";
   const ISLAND_TARGET_WIDTH = 480; // largura final da ilha em px na tela
-  const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/casa foram calibrados
+  const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
+
+  // Elementos decorativos: cada um tem sua imagem, uma largura-base (calibrada
+  // para ISLAND_BASE_WIDTH) e um offset (x, y) a partir do centro da ilha.
+  // offsets também calibrados pra ISLAND_BASE_WIDTH — escalam junto com scaleFactor.
+  const DECOR_ITEMS = [
+    {
+      key: "house",
+      url: "/static/img/house.png",
+      baseWidth: 132,
+      offset: { x: -42, y: -86 },
+      anchor: { x: 0.5, y: 1 },
+      label: "Sua casinha no mundo — cresce junto com você.",
+      idle: "smoke",
+    },
+    {
+      key: "tree",
+      url: "/static/img/tree.png",
+      baseWidth: 108,
+      offset: { x: 98, y: -46 },
+      anchor: { x: 0.5, y: 1 },
+      label: "Uma árvore que cresce a cada meta concluída.",
+      idle: "sway",
+    },
+    {
+      key: "pond",
+      url: "/static/img/pond.png",
+      baseWidth: 132,
+      offset: { x: -78, y: 34 },
+      anchor: { x: 0.5, y: 0.62 },
+      label: "Um lago calmo pra respirar entre uma tarefa e outra.",
+      idle: "shimmer",
+    },
+    {
+      key: "bench",
+      url: "/static/img/bench.png",
+      baseWidth: 104,
+      offset: { x: 64, y: 40 },
+      anchor: { x: 0.5, y: 0.78 },
+      label: "Um banco pra sentar e olhar o quanto você já andou.",
+      idle: null,
+    },
+  ];
 
   const COLORS = {
     brand: 0x4fe0b3,
@@ -28,9 +78,8 @@
     dusk: 0xb8a6ef,
     skyTop: 0x03091a,
     skyBottom: 0x0b2830,
-    houseWall: 0xf0d9b5,
-    houseRoof: 0xc0554a,
-    houseDoor: 0x5b3a29,
+    tooltipBg: 0x0b1830,
+    tooltipBorder: 0x4fe0b3,
   };
 
   class WorldEngine {
@@ -52,9 +101,10 @@
       this.app.stage.addChild(this.worldRoot);
 
       this.time = 0;
+      this.hoverables = []; // itens com animação de escala (hover)
+      this.smokePuffs = []; // fumacinha da chaminé
+      this.tooltips = []; // balões de texto ativos
 
-      // a ilha agora carrega de forma assíncrona (é uma imagem), então
-      // toda a montagem da cena espera isso terminar antes de seguir
       this._boot();
     }
 
@@ -63,7 +113,7 @@
       this._buildStars();
       this._buildClouds();
       await this._buildIsland();
-      this._buildHouse();
+      await this._buildDecor();
 
       this.app.ticker.add((delta) => this._tick(delta));
 
@@ -159,8 +209,8 @@
     async _buildIsland() {
       this.islandRoot = new PIXI.Container();
 
-      // fator de escala aplicado no halo e na casa, pra crescerem junto
-      // com a ilha quando ISLAND_TARGET_WIDTH mudar
+      // fator de escala aplicado no halo e em todos os elementos, pra
+      // crescerem junto com a ilha quando ISLAND_TARGET_WIDTH mudar
       const scaleFactor = ISLAND_TARGET_WIDTH / ISLAND_BASE_WIDTH;
       this._islandScaleFactor = scaleFactor;
 
@@ -178,7 +228,7 @@
       const island = new PIXI.Sprite(texture);
 
       // centro da imagem = origem (0,0) do islandRoot, onde tudo mais
-      // (casa, árvore, banco, lago) vai se posicionar em cima
+      // (casa, árvore, banco, lago) se posiciona em cima
       island.anchor.set(0.5, 0.5);
 
       const scaleRatio = ISLAND_TARGET_WIDTH / island.texture.width;
@@ -187,48 +237,149 @@
       this.islandRoot.addChild(island);
       this.island = island;
       this.worldRoot.addChild(this.islandRoot);
+
+      // camada onde ficam os elementos decorativos, sempre acima da ilha
+      this.decorLayer = new PIXI.Container();
+      this.islandRoot.addChild(this.decorLayer);
     }
 
-    // ----------------------------------------------------------- house --
-    _buildHouse() {
-      const house = new PIXI.Container();
-
-      const wall = new PIXI.Graphics();
-      wall.beginFill(COLORS.houseWall);
-      wall.drawRoundedRect(-26, -6, 52, 40, 3);
-      wall.endFill();
-      house.addChild(wall);
-
-      const roof = new PIXI.Graphics();
-      roof.beginFill(COLORS.houseRoof);
-      roof.moveTo(-34, -6);
-      roof.lineTo(0, -38);
-      roof.lineTo(34, -6);
-      roof.lineTo(-34, -6);
-      roof.endFill();
-      house.addChild(roof);
-
-      const door = new PIXI.Graphics();
-      door.beginFill(COLORS.houseDoor);
-      door.drawRoundedRect(-7, 14, 14, 20, 2);
-      door.endFill();
-      house.addChild(door);
-
-      const window1 = new PIXI.Graphics();
-      window1.beginFill(COLORS.sun, 0.85);
-      window1.drawRoundedRect(-20, 2, 10, 10, 2);
-      window1.drawRoundedRect(10, 2, 10, 10, 2);
-      window1.endFill();
-      house.addChild(window1);
-
-      // escala e posição acompanham o tamanho da ilha — ajuste o -70
-      // se quiser reposicionar a casa em relação à grama
+    // ---------------------------------------------------------- decor --
+    async _buildDecor() {
       const scaleFactor = this._islandScaleFactor || 1;
-      house.scale.set(scaleFactor);
-      house.y = -70 * scaleFactor;
 
-      this.islandRoot.addChild(house);
-      this.house = house;
+      for (const item of DECOR_ITEMS) {
+        const texture = await PIXI.Assets.load(item.url);
+        const sprite = new PIXI.Sprite(texture);
+
+        sprite.anchor.set(item.anchor.x, item.anchor.y);
+
+        const ratio = item.baseWidth / sprite.texture.width;
+        const baseScale = ratio * scaleFactor;
+        sprite.scale.set(baseScale);
+
+        sprite.x = item.offset.x * scaleFactor;
+        sprite.y = item.offset.y * scaleFactor;
+
+        // sombra leve embaixo de cada elemento, pra "fixar" ele na grama
+        const shadow = new PIXI.Graphics();
+        shadow.beginFill(0x03091a, 0.28);
+        shadow.drawEllipse(0, 0, (sprite.width / baseScale) * 0.30, (sprite.width / baseScale) * 0.10);
+        shadow.endFill();
+        shadow.filters = [new PIXI.BlurFilter(6)];
+        shadow.x = sprite.x;
+        shadow.y = sprite.y - (item.anchor.y === 1 ? 2 : 0);
+        shadow.scale.set(baseScale);
+        this.decorLayer.addChildAt(shadow, 0);
+
+        this.decorLayer.addChild(sprite);
+
+        this._makeInteractive(sprite, item, baseScale);
+
+        item.sprite = sprite;
+
+        if (item.idle === "smoke") {
+          this._initSmoke(sprite, item);
+        }
+      }
+    }
+
+    // ---------------------------------------------------- interatividade --
+    _makeInteractive(sprite, item, baseScale) {
+      sprite.eventMode = "static";
+      sprite.cursor = "pointer";
+
+      const state = {
+        sprite,
+        item,
+        baseScale,
+        currentMul: 1,
+        targetMul: 1,
+        hovering: false,
+      };
+      this.hoverables.push(state);
+
+      sprite.on("pointerover", () => {
+        state.targetMul = 1.1;
+        state.hovering = true;
+      });
+      sprite.on("pointerout", () => {
+        state.targetMul = 1;
+        state.hovering = false;
+      });
+      sprite.on("pointertap", () => {
+        this._bounce(state);
+        this._showTooltip(sprite, item.label);
+      });
+    }
+
+    _bounce(state) {
+      // pequeno "pulo" de clique, além do zoom de hover
+      state.targetMul = 1.22;
+      setTimeout(() => {
+        state.targetMul = state.hovering ? 1.1 : 1;
+      }, 140);
+    }
+
+    _showTooltip(sprite, text) {
+      const container = new PIXI.Container();
+
+      const style = new PIXI.TextStyle({
+        fontFamily: "Space Grotesk, sans-serif",
+        fontSize: 13,
+        fontWeight: "600",
+        fill: 0xe9f2ff,
+        wordWrap: true,
+        wordWrapWidth: 180,
+        align: "center",
+      });
+      const label = new PIXI.Text(text, style);
+      label.anchor.set(0.5, 0.5);
+
+      const paddingX = 14, paddingY = 10;
+      const bg = new PIXI.Graphics();
+      bg.lineStyle(1, COLORS.tooltipBorder, 0.6);
+      bg.beginFill(COLORS.tooltipBg, 0.92);
+      bg.drawRoundedRect(
+        -label.width / 2 - paddingX,
+        -label.height / 2 - paddingY,
+        label.width + paddingX * 2,
+        label.height + paddingY * 2,
+        10
+      );
+      bg.endFill();
+
+      container.addChild(bg, label);
+      container.x = sprite.x;
+      container.y = sprite.y - sprite.height - 18;
+      container.alpha = 0;
+      container.scale.set(0.9);
+
+      this.decorLayer.addChild(container);
+      this.tooltips.push({ container, born: this.time, ttl: 210, dying: false });
+    }
+
+    // ------------------------------------------------------------ fumaça --
+    _initSmoke(sprite, item) {
+      // ponto de saída aproximado da chaminé, relativo ao sprite (que tem
+      // anchor 0.5,1 — base no chão). Ajuste os valores se trocar a imagem.
+      item.smokeOrigin = { x: sprite.width * 0.30, y: -sprite.height * 0.92 };
+      item.smokeTimer = 0;
+    }
+
+    _spawnSmokePuff(item) {
+      const g = new PIXI.Graphics();
+      g.beginFill(0xcfd9e8, 0.22);
+      g.drawCircle(0, 0, 3 + Math.random() * 2);
+      g.endFill();
+      g.x = item.sprite.x + item.smokeOrigin.x + (Math.random() * 6 - 3);
+      g.y = item.sprite.y + item.smokeOrigin.y;
+      this.decorLayer.addChild(g);
+      this.smokePuffs.push({
+        g,
+        born: this.time,
+        vx: (Math.random() * 0.3 - 0.15) * (this._islandScaleFactor || 1),
+        vy: -(0.5 + Math.random() * 0.3) * (this._islandScaleFactor || 1),
+      });
     }
 
     // ------------------------------------------------------------ tick --
@@ -249,8 +400,69 @@
       }
 
       const bob = Math.sin(this.time * 0.02) * 6;
-      this.islandRoot.y = this._baseIslandY + bob;
-      this.islandRoot.rotation = Math.sin(this.time * 0.012) * 0.01;
+      if (this.islandRoot) {
+        this.islandRoot.y = this._baseIslandY + bob;
+        this.islandRoot.rotation = Math.sin(this.time * 0.012) * 0.01;
+      }
+
+      this._tickDecor(delta);
+    }
+
+    _tickDecor(delta) {
+      // hover/clique: aproxima suavemente a escala atual da escala-alvo
+      for (const state of this.hoverables) {
+        state.currentMul += (state.targetMul - state.currentMul) * Math.min(1, 0.18 * delta);
+        state.sprite.scale.set(state.baseScale * state.currentMul);
+      }
+
+      // idle: árvore balançando e lago com leve "respiração"
+      for (const item of DECOR_ITEMS) {
+        if (!item.sprite) continue;
+        if (item.idle === "sway") {
+          item.sprite.rotation = Math.sin(this.time * 0.02) * 0.045;
+        } else if (item.idle === "shimmer") {
+          const pulse = 1 + Math.sin(this.time * 0.03) * 0.015;
+          item.sprite.alpha = 0.94 + Math.sin(this.time * 0.04) * 0.06;
+          void pulse;
+        } else if (item.idle === "smoke") {
+          item.smokeTimer -= delta;
+          if (item.smokeTimer <= 0) {
+            this._spawnSmokePuff(item);
+            item.smokeTimer = 55 + Math.random() * 25;
+          }
+        }
+      }
+
+      // partículas de fumaça
+      for (let i = this.smokePuffs.length - 1; i >= 0; i--) {
+        const p = this.smokePuffs[i];
+        const age = this.time - p.born;
+        p.g.x += p.vx * delta;
+        p.g.y += p.vy * delta;
+        p.g.alpha = Math.max(0, 0.22 - age * 0.0022);
+        p.g.scale.set(1 + age * 0.01);
+        if (age > 110) {
+          this.decorLayer.removeChild(p.g);
+          p.g.destroy();
+          this.smokePuffs.splice(i, 1);
+        }
+      }
+
+      // balões de texto: fade in, segura um tempo, fade out e remove
+      for (let i = this.tooltips.length - 1; i >= 0; i--) {
+        const t = this.tooltips[i];
+        const age = this.time - t.born;
+        if (age < 14) {
+          t.container.alpha = Math.min(1, age / 14);
+          t.container.scale.set(0.9 + 0.1 * Math.min(1, age / 14));
+        } else if (age > t.ttl - 20 && age <= t.ttl) {
+          t.container.alpha = Math.max(0, (t.ttl - age) / 20);
+        } else if (age > t.ttl) {
+          this.decorLayer.removeChild(t.container);
+          t.container.destroy({ children: true });
+          this.tooltips.splice(i, 1);
+        }
+      }
     }
 
     // ---------------------------------------------------------- layout --
@@ -270,6 +482,8 @@
         c.g.x = c.startX * w;
         c.g.y = c.ry * h;
       }
+
+      if (!this.islandRoot) return;
 
       this.islandRoot.x = w / 2;
       this._baseIslandY = h * 0.62;
