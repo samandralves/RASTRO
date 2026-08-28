@@ -798,9 +798,7 @@ body{
   border:1px solid var(--border);
   position:relative;
   overflow:hidden;
-  background:
-    radial-gradient(circle at 50% 15%,rgba(104,156,220,.12),transparent 35%),
-    linear-gradient(180deg,#041124,#061a2d 65%,#0b2830);
+  background:transparent;
   box-shadow:var(--shadow)
 }
 
@@ -817,12 +815,13 @@ body{
 
 .island{
   position:absolute;
-  width:400px;
-  height:422px;
+  width:520px;
+  height:548px;
   left:50%;
-  bottom:34px;
-  transform:translateX(-50%);
-  transform-origin:center bottom;
+  top:50%;
+  bottom:auto;
+  transform:translate(-50%,-50%);
+  transform-origin:center center;
   background:url('../img/ChatGPT Image 27 de ago. de 2026, 20_54_25.png') no-repeat center/contain;
   filter:drop-shadow(0 28px 25px rgba(0,0,0,.45))
 }
@@ -1395,7 +1394,7 @@ body{
   .world-stage{height:300px}
 
   .island{
-    transform:translateX(-50%) scale(.62)
+    transform:translate(-50%,-50%) scale(.62)
   }
 
   .goal{
