@@ -1,11 +1,10 @@
 /* world.css — estilos exclusivos da nova tela World (PixiJS).
    Não sobrescreve nenhuma classe do style.css geral. */
-
 .world-stage-pixi{
   position:relative;
   width:100%;
   max-width:1000px;
-  height:480px;
+  height:670px; /* 480px + 40%, acompanhando o crescimento da ilha */
   margin:0 auto;
   border-radius:14px;
   overflow:hidden;
@@ -13,13 +12,11 @@
   box-shadow:0 22px 70px rgba(0,0,0,.34);
   background:#03091a;
 }
-
 .world-stage-pixi canvas{
   display:block;
   width:100% !important;
   height:100% !important;
 }
-
 .world-loading{
   position:absolute;
   inset:0;
@@ -34,11 +31,9 @@
   transition:opacity .4s ease;
   pointer-events:none;
 }
-
 .world-loading.hidden{
   opacity:0;
 }
-
 @media(max-width:520px){
-  .world-stage-pixi{height:320px}
+  .world-stage-pixi{height:450px} /* 320px + 40% */
 }
