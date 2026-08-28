@@ -1,5 +1,4 @@
-"""
-RASTRO — modelos do banco (MySQL via SQLAlchemy).
+ASTRO — modelos do banco (MySQL via SQLAlchemy).
 
 Cada usuário guarda seu progresso (pontos, humor atual, objetivo/barreira
 detectados no TALK, quais áreas já foram desbloqueadas etc). As metas do 1%
@@ -12,7 +11,8 @@ import json
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.securit"""
+Ry import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 
@@ -281,14 +281,48 @@ class VolunteerTicket(db.Model):
     admin_note = db.Column(db.Text)
     closing_note = db.Column(db.Text)
 
+    # áreas que o próprio usuário marcou como envolvidas no problema (chaves
+    # de rastro_data.VOLUNTEER_TICKET_AREAS, separadas por vírgula)
+    areas = db.Column(db.String(255))
+
+    # resultado da conversa: preenchido pelo USUÁRIO depois que o atendimento
+    # é encerrado (não pelo voluntário/admin) — é o que o admin pode ver.
+    outcome_rating = db.Column(db.String(20))  # sim/parcialmente/nao
+    outcome_comment = db.Column(db.String(500))
+
     volunteer = db.relationship(
         "Volunteer",
         foreign_keys=[volunteer_id],
         back_populates="tickets",
     )
+    messages = db.relationship(
+        "VolunteerMessage",
+        backref="ticket",
+        cascade="all, delete-orphan",
+        lazy=True,
+        order_by="VolunteerMessage.created_at",
+    )
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def area_labels(self):
+        from rastro_data import VOLUNTEER_TICKET_AREAS
+        keys = (self.areas or "").split(",") if self.areas else []
+        return [VOLUNTEER_TICKET_AREAS.get(k, k) for k in keys if k]
+
+
+class VolunteerMessage(db.Model):
+    """Mensagem trocada dentro de um atendimento de voluntariado. sender é
+    'usuario', 'voluntario' ou 'sistema' (mensagens automáticas do Rastro)."""
+
+    __tablename__ = "volunteer_messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey("volunteer_tickets.id"), nullable=False, index=True)
+    sender = db.Column(db.String(20), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # ==================== ESTATÍSTICAS DE INSATISFAÇÃO (anônimas) ====================
