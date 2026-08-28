@@ -25,7 +25,7 @@
 (function () {
   "use strict";
 
-  const ISLAND_IMAGE_URL = "/static/img/island-main.png";
+  const ISLAND_IMAGE_URL = "/static/img/island.png";
   const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
   const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
 
@@ -112,14 +112,26 @@
       this._buildSky();
       this._buildStars();
       this._buildClouds();
-      await this._buildIsland();
-      await this._buildDecor();
+
+      try {
+        await this._buildIsland();
+      } catch (err) {
+        console.error("[world] falha ao carregar a ilha (" + ISLAND_IMAGE_URL + "):", err);
+      }
+
+      try {
+        await this._buildDecor();
+      } catch (err) {
+        console.error("[world] falha ao montar os elementos decorativos:", err);
+      }
 
       this.app.ticker.add((delta) => this._tick(delta));
 
       this._layout();
       window.addEventListener("resize", () => this._layout());
 
+      // sempre esconde o loading no final, mesmo se alguma imagem falhou —
+      // assim a cena nunca fica travada em "Preparando seu mundo..."
       this._hideLoading();
     }
 
@@ -248,7 +260,14 @@
       const scaleFactor = this._islandScaleFactor || 1;
 
       for (const item of DECOR_ITEMS) {
-        const texture = await PIXI.Assets.load(item.url);
+        let texture;
+        try {
+          texture = await PIXI.Assets.load(item.url);
+        } catch (err) {
+          console.error("[world] falha ao carregar \"" + item.key + "\" (" + item.url + "):", err);
+          continue; // pula esse item, mas segue montando os outros normalmente
+        }
+
         const sprite = new PIXI.Sprite(texture);
 
         sprite.anchor.set(item.anchor.x, item.anchor.y);
