@@ -493,6 +493,32 @@ CVV_MESSAGE = (
     "ligue também para o 192 (SAMU) ou vá até o pronto-socorro mais próximo."
 )
 
+# áreas que o usuário pode marcar como relacionadas ao que está vivendo —
+# usado só para dar contexto ao voluntário/admin, não é diagnóstico.
+VOLUNTEER_TICKET_AREAS = {
+    "ansiedade": "Ansiedade",
+    "tristeza_depressao": "Tristeza / depressão",
+    "relacionamentos": "Relacionamentos",
+    "familia": "Família",
+    "escola_trabalho": "Escola / trabalho",
+    "autoestima": "Autoestima",
+    "luto": "Luto",
+    "saude_fisica": "Saúde física",
+    "alimentacao": "Alimentação",
+    "outro": "Outro",
+}
+
+VOLUNTEER_INTRO_MESSAGE = (
+    "Desabafe. Aqui é um local seguro e tudo o que disser será anonimizado. "
+    "Evite informar dados pessoais, a menos que seja de extrema necessidade "
+    "para o seu relato."
+)
+
+VOLUNTEER_WAIT_MESSAGE = (
+    "Em alguns instantes, um voluntário supervisionado irá analisar o seu "
+    "caso e te ajudar da maneira mais assertiva."
+)
+
 CRITICAL_KEYWORDS = [
     "quero morrer", "quero me matar", "vou me matar", "não aguento mais viver",
     "não quero mais viver", "acabar com tudo", "acabar com a minha vida",
@@ -509,6 +535,29 @@ MEDIUM_URGENCY_KEYWORDS = [
     "ansios", "triste", "sozinh", "cansad", "sobrecarreg", "estress",
     "não sei o que fazer", "confus",
 ]
+
+
+VOLUNTEER_TICKET_AREAS = {
+    "ansiedade": "Ansiedade",
+    "tristeza_depressao": "Tristeza / depressão",
+    "relacionamentos": "Relacionamentos",
+    "familia": "Família",
+    "escola_trabalho": "Escola / trabalho",
+    "autoestima": "Autoestima",
+    "luto": "Luto",
+    "outro": "Outro",
+}
+
+VOLUNTEER_INTRO_MESSAGE = (
+    "Desabafe. Aqui é um local seguro e tudo o que disser será anonimizado. "
+    "Evite informar dados pessoais, a menos que seja de extrema necessidade "
+    "para o seu relato."
+)
+
+VOLUNTEER_WAIT_MESSAGE = (
+    "Em alguns instantes, um voluntário supervisionado irá analisar o seu "
+    "caso e te ajudar da maneira mais assertiva."
+)
 
 
 def classify_ticket_urgency(text):
