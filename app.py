@@ -35,6 +35,7 @@ from models import (
     Volunteer,
     WorldRealPreference,
     WorldRealInteraction,
+    VolunteerMessage,
     VolunteerTicket,
     WeeklyGoal,
     WorldItem,
@@ -47,6 +48,9 @@ from rastro_data import (
     PATTERNS,
     REWARDS,
     BENEFITS,
+    VOLUNTEER_INTRO_MESSAGE,
+    VOLUNTEER_TICKET_AREAS,
+    VOLUNTEER_WAIT_MESSAGE,
     WORLD_REAL_INTERESTS,
     WORLD_REAL_PLACES,
     SATISFACTION_CONTEXTS,
@@ -276,15 +280,10 @@ def volunteer_login():
 @volunteer_login_required
 def volunteer_panel():
     volunteer = current_volunteer()
+    # aba "Painel": fila de espera, ainda não assumida por ninguém
     tickets = (
         VolunteerTicket.query
-        .filter(
-            VolunteerTicket.status.in_(("fila", "em_atendimento")),
-            db.or_(
-                VolunteerTicket.volunteer_id.is_(None),
-                VolunteerTicket.volunteer_id == volunteer.id,
-            ),
-        )
+        .filter_by(status="fila", volunteer_id=None)
         .order_by(
             db.case(
                 (VolunteerTicket.urgency == "critica", 0),
@@ -296,6 +295,13 @@ def volunteer_panel():
         )
         .all()
     )
+    # aba "Conversas": atendimentos que este voluntário já assumiu e segue ativo
+    conversations = (
+        VolunteerTicket.query
+        .filter_by(volunteer_id=volunteer.id, status="em_atendimento")
+        .order_by(VolunteerTicket.updated_at.desc())
+        .all()
+    )
     history = (
         VolunteerTicket.query
         .filter_by(volunteer_id=volunteer.id)
@@ -304,7 +310,14 @@ def volunteer_panel():
         .limit(50)
         .all()
     )
-    return render_template("voluntario_painel.html", volunteer=volunteer, tickets=tickets, history=history)
+    return render_template(
+        "voluntario_painel.html",
+        volunteer=volunteer,
+        tickets=tickets,
+        conversations=conversations,
+        history=history,
+        areas=VOLUNTEER_TICKET_AREAS,
+    )
 
 
 @app.post("/voluntario/tickets/<int:ticket_id>/assumir")
@@ -320,6 +333,56 @@ def volunteer_assume_ticket(ticket_id):
     ticket.status = "em_atendimento"
     db.session.commit()
     flash("Atendimento assumido.")
+    return redirect(url_for("volunteer_panel"))
+
+
+@app.get("/voluntario/tickets/<int:ticket_id>/mensagens")
+@volunteer_login_required
+def volunteer_get_messages(ticket_id):
+    volunteer = current_volunteer()
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.volunteer_id != volunteer.id:
+        return jsonify({"error": "not_allowed"}), 403
+    return jsonify({
+        "status": ticket.status,
+        "messages": [
+            {"id": m.id, "sender": m.sender, "text": m.text, "created_at": m.created_at.strftime("%H:%M")}
+            for m in ticket.messages
+        ],
+    })
+
+
+@app.post("/voluntario/tickets/<int:ticket_id>/mensagem")
+@volunteer_login_required
+def volunteer_send_message(ticket_id):
+    volunteer = current_volunteer()
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.volunteer_id != volunteer.id or ticket.status != "em_atendimento":
+        return jsonify({"error": "not_allowed"}), 403
+    data = request.get_json(force=True)
+    text = (data.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "empty"}), 400
+    msg = VolunteerMessage(ticket_id=ticket.id, sender="voluntario", text=text[:2000])
+    db.session.add(msg)
+    ticket.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({"message": {"id": msg.id, "sender": msg.sender, "text": msg.text, "created_at": msg.created_at.strftime("%H:%M")}})
+
+
+@app.post("/voluntario/tickets/<int:ticket_id>/cvv")
+@volunteer_login_required
+def volunteer_forward_cvv(ticket_id):
+    volunteer = current_volunteer()
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.volunteer_id != volunteer.id or ticket.status != "em_atendimento":
+        flash("Esse atendimento não pertence a você.")
+        return redirect(url_for("volunteer_panel"))
+    db.session.add(VolunteerMessage(ticket_id=ticket.id, sender="voluntario", text=CVV_MESSAGE))
+    ticket.status = "encaminhado_cvv"
+    ticket.closing_note = ticket.closing_note or "Encaminhado ao CVV pelo voluntário."
+    db.session.commit()
+    flash("Conversa encaminhada para a mensagem do CVV e encerrada.")
     return redirect(url_for("volunteer_panel"))
 
 
@@ -369,6 +432,7 @@ def admin_dashboard():
         + db.session.query(db.func.count(WeeklyGoal.id)).filter_by(done=True).scalar()
         + db.session.query(db.func.count(MonthlyCycle.id)).filter_by(monthly_done=True).scalar()
     )
+    secret_posts = SecretPost.query.order_by(SecretPost.created_at.desc()).limit(100).all()
     total_secret_posts = SecretPost.query.count()
 
     stage_counts = {"TALK": total_users, "1%": 0, "WORLD": 0, "SECRET": 0, "PERFIL": 0}
@@ -420,6 +484,7 @@ def admin_dashboard():
         avg_points=avg_points,
         total_checkins=total_checkins,
         total_goals_done=total_goals_done,
+        secret_posts=secret_posts,
         total_secret_posts=total_secret_posts,
         stage_counts=stage_counts,
         mood_counts=mood_counts,
@@ -460,23 +525,13 @@ def admin_draft_rejeitar(draft_id):
     return redirect(url_for("admin_dashboard"))
 
 
-@app.post("/admin/tickets/<int:ticket_id>/atualizar")
+@app.post("/admin/secret/<int:post_id>/apagar")
 @admin_required
-def admin_ticket_atualizar(ticket_id):
-    ticket = VolunteerTicket.query.get_or_404(ticket_id)
-    status = request.form.get("status")
-    if status in ("fila", "em_atendimento", "encerrado", "encaminhado_cvv"):
-        ticket.status = status
-    volunteer_id = request.form.get("volunteer_id")
-    if volunteer_id:
-        volunteer = db.session.get(Volunteer, int(volunteer_id))
-        if volunteer:
-            ticket.volunteer_id = volunteer.id
-            ticket.volunteer_name = volunteer.name
-    ticket.partner_university = request.form.get("partner_university", "").strip() or ticket.partner_university
-    ticket.admin_note = request.form.get("admin_note", "").strip() or ticket.admin_note
+def admin_secret_delete(post_id):
+    post = SecretPost.query.get_or_404(post_id)
+    db.session.delete(post)
     db.session.commit()
-    flash("Ticket atualizado.")
+    flash("Post do Secret removido.")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -989,18 +1044,64 @@ def api_secret_heart():
 
 # ---------------- voluntariado / triagem ----------------
 
+def _serialize_volunteer_message(msg):
+    return {
+        "id": msg.id,
+        "sender": msg.sender,
+        "text": msg.text,
+        "created_at": msg.created_at.strftime("%H:%M"),
+    }
+
+
 @app.route("/voluntario")
 @login_required
 def voluntario():
-    return render_template("voluntario.html", active="talk")
+    user = current_user()
+    active_ticket = (
+        VolunteerTicket.query
+        .filter_by(user_id=user.id)
+        .filter(VolunteerTicket.status.in_(("fila", "em_atendimento")))
+        .order_by(VolunteerTicket.created_at.desc())
+        .first()
+    )
+    closed_ticket = None
+    if not active_ticket:
+        closed_ticket = (
+            VolunteerTicket.query
+            .filter_by(user_id=user.id, outcome_rating=None)
+            .filter(VolunteerTicket.status.in_(("encerrado", "encaminhado_cvv")))
+            .order_by(VolunteerTicket.updated_at.desc())
+            .first()
+        )
+    ticket = active_ticket or closed_ticket
+    return render_template(
+        "voluntario.html",
+        active="talk",
+        areas=VOLUNTEER_TICKET_AREAS,
+        intro_message=VOLUNTEER_INTRO_MESSAGE,
+        ticket=ticket,
+        ticket_open=bool(active_ticket),
+        awaiting_outcome=bool(closed_ticket),
+        messages=[_serialize_volunteer_message(m) for m in ticket.messages] if ticket else [],
+    )
 
 
 @app.post("/api/voluntario/ticket")
 @login_required
 def api_voluntario_ticket():
     user = current_user()
+    existing = (
+        VolunteerTicket.query
+        .filter_by(user_id=user.id)
+        .filter(VolunteerTicket.status.in_(("fila", "em_atendimento")))
+        .first()
+    )
+    if existing:
+        return jsonify({"error": "already_open"}), 400
+
     data = request.get_json(force=True)
     text = (data.get("text") or "").strip()
+    areas = [a for a in (data.get("areas") or []) if a in VOLUNTEER_TICKET_AREAS]
     if not text:
         return jsonify({"error": "empty"}), 400
 
@@ -1010,21 +1111,78 @@ def api_voluntario_ticket():
         user_id=user.id,
         description=text[:2000],
         urgency=urgency,
+        areas=",".join(areas),
         status="encaminhado_cvv" if is_crisis else "fila",
     )
     db.session.add(ticket)
-    db.session.commit()
+    db.session.flush()
+
+    db.session.add(VolunteerMessage(ticket_id=ticket.id, sender="sistema", text=VOLUNTEER_INTRO_MESSAGE))
+    db.session.add(VolunteerMessage(ticket_id=ticket.id, sender="usuario", text=text[:2000]))
 
     if is_crisis:
-        return jsonify({"crisis": True, "message": CVV_MESSAGE})
+        db.session.add(VolunteerMessage(ticket_id=ticket.id, sender="sistema", text=CVV_MESSAGE))
+    else:
+        db.session.add(VolunteerMessage(ticket_id=ticket.id, sender="sistema", text=VOLUNTEER_WAIT_MESSAGE))
+
+    db.session.commit()
 
     return jsonify({
-        "crisis": False,
-        "message": (
-            "Recebemos o que você contou. Pelo nível de urgência, você entrou na nossa fila de "
-            "atendimento e um voluntário (ou parceiro universitário) vai te retornar em breve."
-        ),
+        "crisis": is_crisis,
+        "ticket_id": ticket.id,
+        "messages": [_serialize_volunteer_message(m) for m in ticket.messages],
     })
+
+
+@app.post("/api/voluntario/mensagem")
+@login_required
+def api_voluntario_mensagem():
+    user = current_user()
+    data = request.get_json(force=True)
+    ticket_id = data.get("ticket_id")
+    text = (data.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "empty"}), 400
+
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.user_id != user.id or ticket.status not in ("fila", "em_atendimento"):
+        return jsonify({"error": "not_allowed"}), 403
+
+    msg = VolunteerMessage(ticket_id=ticket.id, sender="usuario", text=text[:2000])
+    db.session.add(msg)
+    ticket.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({"message": _serialize_volunteer_message(msg)})
+
+
+@app.get("/api/voluntario/mensagens/<int:ticket_id>")
+@login_required
+def api_voluntario_mensagens(ticket_id):
+    user = current_user()
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.user_id != user.id:
+        return jsonify({"error": "not_allowed"}), 403
+    return jsonify({
+        "status": ticket.status,
+        "messages": [_serialize_volunteer_message(m) for m in ticket.messages],
+    })
+
+
+@app.post("/api/voluntario/ticket/<int:ticket_id>/resultado")
+@login_required
+def api_voluntario_resultado(ticket_id):
+    user = current_user()
+    ticket = VolunteerTicket.query.get_or_404(ticket_id)
+    if ticket.user_id != user.id or ticket.status not in ("encerrado", "encaminhado_cvv"):
+        return jsonify({"error": "not_allowed"}), 403
+    data = request.get_json(force=True)
+    rating = data.get("rating")
+    if rating not in ("sim", "parcialmente", "nao"):
+        return jsonify({"error": "invalid_rating"}), 400
+    ticket.outcome_rating = rating
+    ticket.outcome_comment = (data.get("comment") or "").strip()[:500] or None
+    db.session.commit()
+    return jsonify({"ok": True})
 
 
 # ---------------- atualizar informações ----------------
