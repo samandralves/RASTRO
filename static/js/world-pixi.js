@@ -55,7 +55,7 @@
       key: "pond",
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -68, y: 26 },
+      offset: { x: -58, y: -8 },
       anchor: { x: 0.5, y: 0.62 },
       label: "Um lago calmo pra respirar entre uma tarefa e outra.",
       idle: "shimmer",
