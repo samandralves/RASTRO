@@ -1,4 +1,5 @@
-# ASTRO — modelos do banco (MySQL via SQLAlchemy).
+"""
+ASTRO — modelos do banco (MySQL via SQLAlchemy).
 
 Cada usuário guarda seu progresso (pontos, humor atual, objetivo/barreira
 detectados no TALK, quais áreas já foram desbloqueadas etc). As metas do 1%
@@ -11,11 +12,9 @@ import json
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.securit"""
-Ry import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
-
 # limiares (em nº de itens concluídos no ciclo) que desbloqueiam cada semanal
 # e liberam os diários da semana seguinte. semana 1 já nasce com os diários
 # disponíveis; as demais liberam junto com a respectiva meta semanal.
