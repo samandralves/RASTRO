@@ -822,7 +822,7 @@ body{
   bottom:auto;
   transform:translate(-50%,-50%);
   transform-origin:center center;
-  background:url('../img/island-main.png') no-repeat center/contain;
+  background:url('../img/island.png') no-repeat center/contain;
   filter:drop-shadow(0 28px 25px rgba(0,0,0,.45))
 }
 
