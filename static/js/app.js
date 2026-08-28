@@ -498,36 +498,208 @@ const RastroCycle = {
   },
 };
 
-/* ---------------- Voluntariado: envio da triagem ---------------- */
+/* ---------------- Voluntariado (usuário): chat persistente com voluntário ---------------- */
 const RastroVolunteer = {
   init() {
-    const form = document.getElementById("volunteer-form");
-    const result = document.getElementById("volunteer-result");
-    if (!form) return;
+    const chat = document.getElementById("volunteer-chat");
+    if (!chat) return;
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const textarea = document.getElementById("volunteer-text");
-      const text = textarea.value.trim();
+    const log = document.getElementById("volunteer-log");
+    const input = document.getElementById("volunteer-input");
+    const sendBtn = document.getElementById("volunteer-send");
+    const areasBox = document.getElementById("volunteer-areas-box");
+    const outcomeBox = document.getElementById("volunteer-outcome-box");
+
+    let ticketId = chat.dataset.ticketId ? parseInt(chat.dataset.ticketId, 10) : null;
+    let ticketOpen = chat.dataset.ticketOpen === "true";
+    let sending = false;
+    let pollTimer = null;
+
+    function addBubble(text, sender) {
+      const div = document.createElement("div");
+      div.className = `bubble ${sender === "usuario" ? "user" : "rastro"}`;
+      div.textContent = text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function collectAreas() {
+      if (!areasBox) return [];
+      return Array.from(areasBox.querySelectorAll('input[name="areas"]:checked')).map((el) => el.value);
+    }
+
+    async function createTicket(text) {
+      const areas = collectAreas();
+      const res = await fetch("/api/voluntario/ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, areas }),
+      });
+      const data = await res.json();
+      if (data.error) return;
+
+      ticketId = data.ticket_id;
+      ticketOpen = !data.crisis;
+      chat.dataset.ticketId = ticketId;
+      chat.dataset.ticketOpen = ticketOpen ? "true" : "false";
+
+      if (areasBox) areasBox.remove();
+
+      // a bolha de abertura (sistema) e a mensagem do usuário já estão na tela;
+      // adiciona só o que veio depois delas (aviso de espera ou mensagem do CVV)
+      (data.messages || []).slice(2).forEach((m) => addBubble(m.text, m.sender));
+
+      if (!ticketOpen) {
+        document.getElementById("volunteer-input-row")?.remove();
+      } else {
+        startPolling();
+      }
+    }
+
+    async function sendFollowUp(text) {
+      const res = await fetch("/api/voluntario/mensagem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticket_id: ticketId, text }),
+      });
+      const data = await res.json();
+      if (data.error) return;
+    }
+
+    async function send() {
+      if (sending) return;
+      const text = input.value.trim();
       if (!text) return;
-
-      const submitBtn = form.querySelector("button[type=submit]");
-      submitBtn.disabled = true;
+      sending = true;
+      input.value = "";
+      addBubble(text, "usuario");
 
       try {
-        const res = await fetch("/api/voluntario/ticket", {
+        if (!ticketId) {
+          await createTicket(text);
+        } else {
+          await sendFollowUp(text);
+        }
+      } finally {
+        sending = false;
+      }
+    }
+
+    if (sendBtn) sendBtn.addEventListener("click", send);
+    if (input) {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") send();
+      });
+    }
+
+    function startPolling() {
+      if (pollTimer || !ticketId) return;
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/voluntario/mensagens/${ticketId}`);
+          const data = await res.json();
+          if (!data.messages) return;
+          const current = log.querySelectorAll(".bubble").length;
+          if (data.messages.length > current) {
+            data.messages.slice(current).forEach((m) => addBubble(m.text, m.sender));
+          }
+          if (data.status !== "fila" && data.status !== "em_atendimento") {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            document.getElementById("volunteer-input-row")?.remove();
+            window.location.reload();
+          }
+        } catch (err) {
+          /* silencioso — tenta de novo no próximo ciclo */
+        }
+      }, 4000);
+    }
+
+    if (ticketId && ticketOpen) startPolling();
+
+    // ---- registrar resultado do atendimento (encerrado/encaminhado ao CVV) ----
+    if (outcomeBox) {
+      const commentEl = document.getElementById("volunteer-outcome-comment");
+      outcomeBox.querySelectorAll("[data-rating]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          outcomeBox.querySelectorAll("[data-rating]").forEach((b) => (b.disabled = true));
+          try {
+            await fetch(`/api/voluntario/ticket/${ticketId}/resultado`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ rating: btn.dataset.rating, comment: commentEl ? commentEl.value.trim() : "" }),
+            });
+          } finally {
+            outcomeBox.innerHTML = "<p>Obrigado por contar como foi. 🌿</p>";
+          }
+        });
+      });
+    }
+  },
+};
+
+/* ---------------- Voluntariado (painel do voluntário): abas + chat das conversas ---------------- */
+const RastroVolunteerPanel = {
+  init() {
+    const tabs = document.querySelectorAll(".volunteer-panel-tab");
+    if (!tabs.length) return;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".volunteer-panel-tabpage").forEach((page) => {
+          page.hidden = page.dataset.tabpage !== tab.dataset.tab;
+        });
+      });
+    });
+
+    document.querySelectorAll(".volunteer-conversation").forEach((card) => {
+      const ticketId = card.dataset.ticketId;
+      const log = document.getElementById(`conv-log-${ticketId}`);
+      const input = document.getElementById(`conv-input-${ticketId}`);
+      const sendBtn = card.querySelector(".conv-send");
+
+      function addBubble(text, sender) {
+        const div = document.createElement("div");
+        div.className = `bubble ${sender === "voluntario" ? "user" : "rastro"}`;
+        div.textContent = text;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      async function send() {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
+        addBubble(text, "voluntario");
+        await fetch(`/voluntario/tickets/${ticketId}/mensagem`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text }),
         });
-        const data = await res.json();
-        result.innerHTML = `<div class="side-card" style="margin-top:16px;">${data.message}</div>`;
-        textarea.value = "";
-      } catch (err) {
-        result.innerHTML = `<div class="side-card" style="margin-top:16px;">Não conseguimos enviar agora. Tenta de novo em instantes?</div>`;
-      } finally {
-        submitBtn.disabled = false;
       }
+
+      if (sendBtn) sendBtn.addEventListener("click", send);
+      if (input) {
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") send();
+        });
+      }
+
+      setInterval(async () => {
+        try {
+          const res = await fetch(`/voluntario/tickets/${ticketId}/mensagens`);
+          const data = await res.json();
+          if (!data.messages) return;
+          const current = log.querySelectorAll(".bubble").length;
+          if (data.messages.length > current) {
+            data.messages.slice(current).forEach((m) => addBubble(m.text, m.sender));
+          }
+        } catch (err) {
+          /* silencioso — tenta de novo no próximo ciclo */
+        }
+      }, 4000);
     });
   },
 };
