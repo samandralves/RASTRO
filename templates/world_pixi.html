@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{# Se sua base.html tiver blocos com outros nomes, ajuste os dois abaixo. #}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{{ url_for('world_pixi.static', filename='world.css') }}">
-{% endblock %}
+{% block title %}World{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/world.css') }}">
+
 <div class="screen world-screen">
 
   <div class="screen-heading">
@@ -21,7 +20,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js"></script>
-  <script src="{{ url_for('world_pixi.static', filename='world-pixi.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/world-pixi.js') }}"></script>
 {% endblock %}
