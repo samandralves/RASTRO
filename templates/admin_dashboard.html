@@ -123,6 +123,7 @@
 
       <section class="admin-card admin-table-card">
         <p class="eyebrow">VOLUNTARIADO — TICKETS ({{ tickets|length }} recentes)</p>
+        <p style="font-size:9px;color:var(--muted);margin:-6px 0 12px;">Visualização apenas: o problema, a classificação de urgência/áreas e o resultado que o próprio usuário registrou após o atendimento.</p>
         <div class="admin-bars" style="margin-bottom:16px;">
           {% for urgency, count in ticket_urgency_counts.items() %}
           <div class="admin-bar-row">
@@ -134,36 +135,50 @@
         </div>
         <div class="admin-table-wrap">
           <table class="admin-table">
-            <thead><tr><th>Usuário</th><th>Urgência</th><th>Status</th><th>Descrição</th><th>Universidade/voluntário</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Usuário</th><th>Urgência</th><th>Áreas</th><th>Status</th><th>Descrição (problema)</th><th>Resultado registrado pelo usuário</th></tr></thead>
             <tbody>
               {% for t in tickets %}
               <tr>
                 <td>{{ t.user.name }}</td>
                 <td>{{ t.urgency }}</td>
+                <td>{{ t.area_labels()|join(', ') if t.area_labels() else '—' }}</td>
                 <td>{{ t.status }}</td>
                 <td style="max-width:280px;">{{ t.description[:180] }}{{ '…' if t.description|length > 180 }}</td>
-                <td>{{ t.partner_university or '—' }} {{ t.volunteer_name or '' }}</td>
                 <td>
-                  <form method="post" action="{{ url_for('admin_ticket_atualizar', ticket_id=t.id) }}" style="display:flex;gap:4px;flex-wrap:wrap;">
-                    <select name="status">
-                      <option value="fila" {{ 'selected' if t.status=='fila' }}>fila</option>
-                      <option value="em_atendimento" {{ 'selected' if t.status=='em_atendimento' }}>em atendimento</option>
-                      <option value="encerrado" {{ 'selected' if t.status=='encerrado' }}>encerrado</option>
-                      <option value="encaminhado_cvv" {{ 'selected' if t.status=='encaminhado_cvv' }}>encaminhado CVV</option>
-                    </select>
-                    <select name="volunteer_id">
-                      <option value="">sem voluntário</option>
-                      {% for v in volunteers if v.active %}
-                      <option value="{{ v.id }}" {{ 'selected' if t.volunteer_id == v.id }}>{{ v.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <input type="text" name="partner_university" placeholder="universidade">
-                    <button class="outline-btn" type="submit">Salvar</button>
-                  </form>
+                  {% if t.outcome_rating %}
+                    <strong>{{ t.outcome_rating|title }}</strong>{% if t.outcome_comment %}<br><small>{{ t.outcome_comment }}</small>{% endif %}
+                  {% else %}
+                    <span class="admin-empty">ainda não registrado</span>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
               {% if not tickets %}<tr><td colspan="6" class="admin-empty">Nenhum ticket registrado ainda.</td></tr>{% endif %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-card admin-table-card">
+        <p class="eyebrow">SECRET — POSTS ({{ total_secret_posts }})</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Post</th><th>♡</th><th>Denúncias</th><th>Data</th><th>Ação</th></tr></thead>
+            <tbody>
+              {% for p in secret_posts %}
+              <tr>
+                <td style="max-width:420px;">{{ p.text }}</td>
+                <td>{{ p.hearts }}</td>
+                <td>{{ p.reports }}</td>
+                <td>{{ p.created_at.strftime('%d/%m/%Y %H:%M') if p.created_at else '—' }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('admin_secret_delete', post_id=p.id) }}" onsubmit="return confirm('Apagar este post do Secret?');">
+                    <button class="outline-btn" type="submit">Apagar</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if not secret_posts %}<tr><td colspan="5" class="admin-empty">Nenhum post ainda.</td></tr>{% endif %}
             </tbody>
           </table>
         </div>
