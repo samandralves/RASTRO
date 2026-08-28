@@ -1,9 +1,14 @@
 /**
  * world-pixi.js
  *
- * Dia 1 do mundo interativo: cena base em PixiJS. A ilha agora vem de
- * uma imagem (static/img/island-base.png) em vez de ser desenhada em
+ * Dia 1 do mundo interativo: cena base em PixiJS. A ilha vem de uma
+ * imagem (static/img/island-base.png) em vez de ser desenhada em
  * código — troque o path abaixo se mudar o nome/local do arquivo.
+ *
+ * ISLAND_TARGET_WIDTH controla o tamanho final da ilha. O halo (brilho
+ * atrás da ilha) e a casa escalam junto automaticamente, proporcionais
+ * a esse valor, pra não ficar desproporcional quando você mudar o
+ * tamanho da ilha.
  *
  * Paleta reaproveitada das variáveis do projeto (style.css):
  *   --brand:#4fe0b3  --sun:#f7bd6a  --dusk:#b8a6ef  --bg:#03091a
@@ -13,7 +18,8 @@
   "use strict";
 
   const ISLAND_IMAGE_URL = "/static/img/island-base.png";
-  const ISLAND_TARGET_WIDTH = 340; // largura final da ilha em px na tela
+  const ISLAND_TARGET_WIDTH = 480; // largura final da ilha em px na tela
+  const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/casa foram calibrados
 
   const COLORS = {
     brand: 0x4fe0b3,
@@ -153,12 +159,18 @@
     async _buildIsland() {
       this.islandRoot = new PIXI.Container();
 
-      // brilho suave atrás da ilha (halo) — mantido igual
+      // fator de escala aplicado no halo e na casa, pra crescerem junto
+      // com a ilha quando ISLAND_TARGET_WIDTH mudar
+      const scaleFactor = ISLAND_TARGET_WIDTH / ISLAND_BASE_WIDTH;
+      this._islandScaleFactor = scaleFactor;
+
+      // brilho suave atrás da ilha (halo)
       const glow = new PIXI.Graphics();
       glow.beginFill(COLORS.brand, 0.10);
       glow.drawEllipse(0, 0, 190, 90);
       glow.endFill();
       glow.filters = [new PIXI.BlurFilter(24)];
+      glow.scale.set(scaleFactor);
       this.islandRoot.addChild(glow);
 
       // ilha vinda da imagem
@@ -209,9 +221,11 @@
       window1.endFill();
       house.addChild(window1);
 
-      // ponto de partida — ajuste este valor testando no navegador até
-      // a casa encostar visualmente no topo da grama da nova imagem
-      house.y = -70;
+      // escala e posição acompanham o tamanho da ilha — ajuste o -70
+      // se quiser reposicionar a casa em relação à grama
+      const scaleFactor = this._islandScaleFactor || 1;
+      house.scale.set(scaleFactor);
+      house.y = -70 * scaleFactor;
 
       this.islandRoot.addChild(house);
       this.house = house;
