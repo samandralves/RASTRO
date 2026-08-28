@@ -48,7 +48,7 @@ def world_novo():
     Rota separada de /world para não conflitar com a página atual
     enquanto o novo mundo ainda está em teste.
     """
-    return render_template("world_pixi.html")
+    return render_template("world_pixi.html", active="world")
 
 
 @world_bp.route("/api/world/state")
