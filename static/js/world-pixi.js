@@ -25,7 +25,7 @@
 (function () {
   "use strict";
 
-  const ISLAND_IMAGE_URL = "/static/img/island.png";
+  const ISLAND_IMAGE_URL = "/static/img/island-base.png";
   const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
   const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
 
