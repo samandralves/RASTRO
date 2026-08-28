@@ -823,7 +823,7 @@ body{
   bottom:34px;
   transform:translateX(-50%);
   transform-origin:center bottom;
-  background:url('../img/floating-island.png') no-repeat center/contain;
+  background:url('../img/island.png') no-repeat center/contain;
   filter:drop-shadow(0 28px 25px rgba(0,0,0,.45))
 }
 
