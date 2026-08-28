@@ -1,12 +1,9 @@
 /**
  * world-pixi.js
  *
- * Dia 1 do mundo interativo: cena base em PixiJS, sem nenhum item
- * comprado ainda (isso entra no Dia 2/3). Já deixa pronta:
- *   - céu com gradiente + estrelas piscando + nuvens passando
- *   - ilha flutuante desenhada em código (sem depender de imagem externa)
- *   - casa simples sobre a ilha
- *   - flutuação suave contínua da ilha (mundo nunca parece parado)
+ * Dia 1 do mundo interativo: cena base em PixiJS. A ilha agora vem de
+ * uma imagem (static/img/island-base.png) em vez de ser desenhada em
+ * código — troque o path abaixo se mudar o nome/local do arquivo.
  *
  * Paleta reaproveitada das variáveis do projeto (style.css):
  *   --brand:#4fe0b3  --sun:#f7bd6a  --dusk:#b8a6ef  --bg:#03091a
@@ -15,6 +12,9 @@
 (function () {
   "use strict";
 
+  const ISLAND_IMAGE_URL = "/static/img/island-base.png";
+  const ISLAND_TARGET_WIDTH = 340; // largura final da ilha em px na tela
+
   const COLORS = {
     brand: 0x4fe0b3,
     brandDark: 0x159b7e,
@@ -22,9 +22,6 @@
     dusk: 0xb8a6ef,
     skyTop: 0x03091a,
     skyBottom: 0x0b2830,
-    islandTop: 0x1c4a52,
-    islandTopLight: 0x2f6f6a,
-    islandBottom: 0x0e2a33,
     houseWall: 0xf0d9b5,
     houseRoof: 0xc0554a,
     houseDoor: 0x5b3a29,
@@ -50,15 +47,20 @@
 
       this.time = 0;
 
+      // a ilha agora carrega de forma assíncrona (é uma imagem), então
+      // toda a montagem da cena espera isso terminar antes de seguir
+      this._boot();
+    }
+
+    async _boot() {
       this._buildSky();
       this._buildStars();
       this._buildClouds();
-      this._buildIsland();
+      await this._buildIsland();
       this._buildHouse();
 
       this.app.ticker.add((delta) => this._tick(delta));
 
-      // primeiro layout + reposiciona quando a tela muda de tamanho
       this._layout();
       window.addEventListener("resize", () => this._layout());
 
@@ -75,7 +77,7 @@
 
     // -------------------------------------------------------------- sky --
     _buildSky() {
-      const w = 32, h = 480; // textura vertical fina, esticada na largura toda
+      const w = 32, h = 480;
       const canvas = document.createElement("canvas");
       canvas.width = w;
       canvas.height = h;
@@ -111,9 +113,8 @@
           baseAlpha: g.alpha,
           speed: Math.random() * 1.5 + 0.5,
           phase: Math.random() * Math.PI * 2,
-          // posição relativa (0..1) — recalculada no _layout()
           rx: Math.random(),
-          ry: Math.random() * 0.7, // estrelas só na parte de cima do céu
+          ry: Math.random() * 0.7,
         });
         this.stars.addChild(g);
       }
@@ -149,10 +150,10 @@
     }
 
     // ---------------------------------------------------------- island --
-    _buildIsland() {
+    async _buildIsland() {
       this.islandRoot = new PIXI.Container();
 
-      // brilho suave atrás da ilha (halo)
+      // brilho suave atrás da ilha (halo) — mantido igual
       const glow = new PIXI.Graphics();
       glow.beginFill(COLORS.brand, 0.10);
       glow.drawEllipse(0, 0, 190, 90);
@@ -160,26 +161,16 @@
       glow.filters = [new PIXI.BlurFilter(24)];
       this.islandRoot.addChild(glow);
 
-      // corpo da ilha (formato orgânico com bezier)
-      const island = new PIXI.Graphics();
+      // ilha vinda da imagem
+      const texture = await PIXI.Assets.load(ISLAND_IMAGE_URL);
+      const island = new PIXI.Sprite(texture);
 
-      island.beginFill(COLORS.islandBottom);
-      island.moveTo(-150, 10);
-      island.bezierCurveTo(-160, 70, -60, 110, 0, 108);
-      island.bezierCurveTo(70, 106, 165, 65, 150, 5);
-      island.bezierCurveTo(150, -6, -150, -6, -150, 10);
-      island.endFill();
+      // centro da imagem = origem (0,0) do islandRoot, onde tudo mais
+      // (casa, árvore, banco, lago) vai se posicionar em cima
+      island.anchor.set(0.5, 0.5);
 
-      island.beginFill(COLORS.islandTop);
-      island.moveTo(-150, 6);
-      island.bezierCurveTo(-155, -30, -80, -46, 0, -46);
-      island.bezierCurveTo(85, -46, 158, -28, 150, 6);
-      island.bezierCurveTo(150, 16, -150, 16, -150, 6);
-      island.endFill();
-
-      island.beginFill(COLORS.islandTopLight, 0.55);
-      island.drawEllipse(-30, -30, 70, 14);
-      island.endFill();
+      const scaleRatio = ISLAND_TARGET_WIDTH / island.texture.width;
+      island.scale.set(scaleRatio);
 
       this.islandRoot.addChild(island);
       this.island = island;
@@ -218,7 +209,10 @@
       window1.endFill();
       house.addChild(window1);
 
-      house.y = -46; // assenta em cima do topo da ilha
+      // ponto de partida — ajuste este valor testando no navegador até
+      // a casa encostar visualmente no topo da grama da nova imagem
+      house.y = -70;
+
       this.islandRoot.addChild(house);
       this.house = house;
     }
@@ -227,13 +221,11 @@
     _tick(delta) {
       this.time += delta;
 
-      // estrelas piscando
       for (const s of this.starData) {
         s.g.alpha =
           s.baseAlpha * (0.6 + 0.4 * Math.sin(this.time * 0.02 * s.speed + s.phase));
       }
 
-      // nuvens deslizando devagar (com wrap na largura da tela)
       const w = this.app.renderer.width / this.app.renderer.resolution;
       for (const c of this.cloudData) {
         c.g.x += (c.speed * delta) / 60;
@@ -242,7 +234,6 @@
         if (c.g.x < -half) c.g.x = w + half;
       }
 
-      // ilha flutuando suavemente (bob) + leve giro
       const bob = Math.sin(this.time * 0.02) * 6;
       this.islandRoot.y = this._baseIslandY + bob;
       this.islandRoot.rotation = Math.sin(this.time * 0.012) * 0.01;
