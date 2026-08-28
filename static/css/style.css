@@ -823,7 +823,7 @@ body{
   bottom:34px;
   transform:translateX(-50%);
   transform-origin:center bottom;
-  background:url('../img/floating-island.png') no-repeat center/contain;
+  background:url('../img/ChatGPT Image 27 de ago. de 2026, 20_54_25.png') no-repeat center/contain;
   filter:drop-shadow(0 28px 25px rgba(0,0,0,.45))
 }
 
@@ -845,10 +845,11 @@ body{
 
 .island-house{
   position:absolute;
-  left:158px;
-  top:78px;
-  width:82px;
-  height:84px;
+  left:36%;
+  top:46%;
+  transform:translate(-50%,-50%);
+  width:92px;
+  height:94px;
   background:url('../img/house-world.png') no-repeat center/contain;
   border-radius:0;
   z-index:4
