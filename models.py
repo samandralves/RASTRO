@@ -1,4 +1,4 @@
-ASTRO — modelos do banco (MySQL via SQLAlchemy).
+# ASTRO — modelos do banco (MySQL via SQLAlchemy).
 
 Cada usuário guarda seu progresso (pontos, humor atual, objetivo/barreira
 detectados no TALK, quais áreas já foram desbloqueadas etc). As metas do 1%
