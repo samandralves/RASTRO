@@ -76,6 +76,19 @@
     },
   };
 
+  // Paleta usada pelo engine (halo da ilha, itens bloqueados, tooltip).
+  // Reaproveitada das variáveis de style.css citadas no cabeçalho deste
+  // arquivo. Ajuste aqui se os tons de style.css mudarem.
+  const COLORS = {
+    brand: 0x4fe0b3,
+    sun: 0xf7bd6a,
+    dusk: 0xb8a6ef,
+    bg: 0x03091a,
+    locked: 0x8a97ad,
+    tooltipBg: 0x0b1830,
+    tooltipBorder: 0x4fe0b3,
+  };
+
   class WorldEngine {
     constructor(containerId, options) {
       this.container = document.getElementById(containerId);
