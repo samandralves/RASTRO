@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -64,8 +65,81 @@
     <a href="{{ url_for('main.perfil') }}" class="{{ 'active' if active=='perfil' }}"><span>♙</span>Perfil</a>
   </nav>
 
+  <!-- ===================== Widget de Acessibilidade ===================== -->
+  <button id="a11y-toggle" class="a11y-toggle" type="button"
+          aria-haspopup="true" aria-expanded="false" aria-controls="a11y-panel"
+          aria-label="Abrir menu de acessibilidade">
+    <img src="{{ url_for('static', filename='img/acessibilidade.png') }}" alt="" class="a11y-toggle-icon">
+  </button>
+
+  <div id="a11y-panel" class="a11y-panel" role="dialog" aria-label="Opções de acessibilidade">
+    <h2>Acessibilidade</h2>
+
+    <div class="a11y-row">
+      <span>Tamanho da fonte</span>
+      <div class="a11y-btn-group">
+        <button id="a11y-font-dec" class="a11y-btn" type="button" aria-label="Diminuir fonte">A-</button>
+        <button id="a11y-font-inc" class="a11y-btn" type="button" aria-label="Aumentar fonte">A+</button>
+      </div>
+    </div>
+
+    <div class="a11y-row">
+      <span>Alto contraste</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="contrast"
+              aria-pressed="false" aria-label="Ativar alto contraste"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Fonte para dislexia</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="dyslexic"
+              aria-pressed="false" aria-label="Ativar fonte OpenDyslexic"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Sublinhar links</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="underline"
+              aria-pressed="false" aria-label="Sublinhar links"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Cursor ampliado</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="cursor"
+              aria-pressed="false" aria-label="Ativar cursor ampliado"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Escala de cinza</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="grayscale"
+              aria-pressed="false" aria-label="Ativar escala de cinza"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Espaçamento de texto</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="spacing"
+              aria-pressed="false" aria-label="Aumentar espaçamento de texto"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>VLibras (Libras)</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="vlibras"
+              aria-pressed="false" aria-label="Ativar tradutor de Libras"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Ler página em voz alta</span>
+      <div class="a11y-btn-group">
+        <button id="a11y-speak" class="a11y-btn" type="button" aria-pressed="false" aria-label="Ler página em voz alta">▶</button>
+        <button id="a11y-speak-stop" class="a11y-btn" type="button" aria-label="Parar leitura">■</button>
+      </div>
+    </div>
+
+    <button id="a11y-reset" class="a11y-reset" type="button">Restaurar padrões</button>
+  </div>
+  <!-- =================== Fim Widget de Acessibilidade =================== -->
+
   <script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/accessibility.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
