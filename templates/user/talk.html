@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}TALK{% endblock %}
+{% block content %}
+<section class="screen talk-screen">
+  <div class="screen-heading">
+    <p class="eyebrow">TALK</p>
+    <h1>Vamos entender juntos o que você está vivendo.</h1>
+    <p>Você não precisa encontrar as palavras certas. Conte do seu jeito.</p>
+  </div>
+
+  <div class="talk-layout">
+    <div class="talk-main">
+      <div class="talk-flow">
+        <span class="flow active">01 <b>contar</b></span>
+        <i></i><span class="flow">02 <b>entender</b></span><i></i><span class="flow">03 <b>1%</b></span>
+      </div>
+
+      <div class="chat-window" id="chat">
+        <div class="chat-intro">
+          <span class="chat-avatar">◌</span>
+          <div><strong>Pode me contar como você está se sentindo<br>ou o que está acontecendo?</strong><small>Fique à vontade para escrever.</small></div>
+        </div>
+        <div class="chat-log" id="chat-log">
+          <div class="bubble rastro">Oi. Não precisa organizar tudo antes de falar comigo. O que tem sido mais difícil ultimamente?</div>
+        </div>
+        <div class="chat-input-row" id="chat-input-row">
+          <input class="chat-input" id="chat-input" placeholder="Escreva com suas palavras..." autocomplete="off">
+          <button class="send-btn" id="chat-send">Enviar</button>
+        </div>
+      </div>
+      <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional.</p>
+    </div>
+
+    <aside class="talk-side">
+      <div class="side-card">
+        <p class="eyebrow">COMO FUNCIONA</p>
+        <div class="mini-step"><span>1</span><div><strong>Você conta</strong><small>sem precisar saber explicar tudo.</small></div></div>
+        <div class="mini-step"><span>2</span><div><strong>O Rastro entende</strong><small>objetivo + principal barreira.</small></div></div>
+        <div class="mini-step"><span>3</span><div><strong>Você recebe seu 1%</strong><small>três ações pequenas e possíveis.</small></div></div>
+      </div>
+      <div class="side-card quote-card">
+        <span>✦</span>
+        <p>Não é sobre fazer tudo.<br><strong>É sobre conseguir começar.</strong></p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>RastroTalk.init({step:0});</script>{% endblock %}

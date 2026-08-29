@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Voluntariado{% endblock %}
+{% block content %}
+<section class="screen talk-screen">
+  <div class="screen-heading">
+    <p class="eyebrow">VOLUNTARIADO</p>
+    <h1>Conte o que você quer conversar.</h1>
+    <p>Vamos ler com cuidado e te encaminhar da forma mais adequada — não precisa ser um texto longo.</p>
+  </div>
+
+  <div class="talk-layout">
+    <div class="talk-main">
+      <div class="chat-window" id="volunteer-chat" data-ticket-id="{{ ticket.id if ticket else '' }}" data-ticket-open="{{ 'true' if ticket_open else 'false' }}" data-awaiting-outcome="{{ 'true' if awaiting_outcome else 'false' }}">
+        <div class="chat-header">
+          <img src="{{ url_for('static', filename='img/logo-rastro.png') }}" alt="Rastro" class="chat-header-avatar">
+          <div><strong>Voluntariado Rastro</strong><small>Atendimento sigiloso e supervisionado</small></div>
+        </div>
+
+        {% if not ticket %}
+        <div class="volunteer-areas-box" id="volunteer-areas-box">
+          <p class="eyebrow">SOBRE O QUE VOCÊ QUER FALAR?</p>
+          <div class="interest-grid" id="volunteer-areas-grid">
+            {% for key, label in areas.items() %}
+            <div class="interest-option"><input id="area-{{ key }}" type="checkbox" name="areas" value="{{ key }}"><label for="area-{{ key }}">{{ label }}</label></div>
+            {% endfor %}
+          </div>
+          <small class="volunteer-areas-hint">Você pode marcar mais de uma opção — isso é só pra dar contexto, não é obrigatório.</small>
+        </div>
+        {% elif ticket.areas %}
+        <div class="volunteer-areas-tags">{% for label in ticket.area_labels() %}<span>{{ label }}</span>{% endfor %}</div>
+        {% endif %}
+
+        <div class="chat-log" id="volunteer-log">
+          {% if not ticket %}
+          <div class="bubble rastro">{{ intro_message }}</div>
+          {% else %}
+            {% for m in messages %}
+            <div class="bubble {{ 'user' if m.sender == 'usuario' else 'rastro' }}">{{ m.text }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        {% if not ticket or ticket_open %}
+        <div class="chat-input-row" id="volunteer-input-row">
+          <input class="chat-input" id="volunteer-input" placeholder="Escreva com suas palavras..." autocomplete="off">
+          <button class="send-btn" id="volunteer-send">Enviar</button>
+        </div>
+        {% endif %}
+
+        {% if awaiting_outcome %}
+        <div class="volunteer-outcome-box" id="volunteer-outcome-box">
+          <p class="eyebrow">COMO FOI ESSE ATENDIMENTO?</p>
+          <div class="volunteer-outcome-options">
+            <button type="button" class="outline-btn" data-rating="sim">Me ajudou</button>
+            <button type="button" class="outline-btn" data-rating="parcialmente">Ajudou parcialmente</button>
+            <button type="button" class="outline-btn" data-rating="nao">Não ajudou</button>
+          </div>
+          <textarea id="volunteer-outcome-comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
+        </div>
+        {% endif %}
+      </div>
+      <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional. Em emergências, ligue 192 (SAMU) ou vá ao pronto-socorro mais próximo.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>RastroVolunteer.init();</script>{% endblock %}

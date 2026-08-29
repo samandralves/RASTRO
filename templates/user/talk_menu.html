@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}TALK{% endblock %}
+{% block content %}
+<section class="screen talk-screen">
+  <div class="screen-heading">
+    <p class="eyebrow">TALK</p>
+    <h1>Como podemos te ajudar hoje?</h1>
+    <p>Você já passou pela sua conversa inicial. Escolha o que faz mais sentido agora.</p>
+  </div>
+
+  <div class="talk-menu-grid">
+    <a class="side-card talk-menu-card" href="{{ url_for('volunteer.chat') }}">
+      <span class="talk-menu-emoji">🫂</span>
+      <strong>Conversar com um voluntário</strong>
+      <small>Desabafe — a gente direciona pra quem pode te ouvir, no tempo certo.</small>
+    </a>
+    <a class="side-card talk-menu-card" href="{{ url_for('main.atualizar_informacoes') }}">
+      <span class="talk-menu-emoji">🔄</span>
+      <strong>Atualizar minhas informações</strong>
+      <small>Diga se o 1% está ajudando, o que te incomoda, ou ajuste seu objetivo.</small>
+    </a>
+  </div>
+
+  <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional.</p>
+</section>
+{% endblock %}

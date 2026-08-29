@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RASTRO — painel do voluntário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body>
+<canvas id="starfield"></canvas>
+<main class="volunteer-panel-page">
+  <header class="volunteer-panel-header">
+    <div><p class="eyebrow">PAINEL DO VOLUNTÁRIO</p><h1>Olá, {{ volunteer.name }}.</h1></div>
+    <a class="outline-btn" href="{{ url_for('volunteer.logout') }}">Sair</a>
+  </header>
+  {% with messages = get_flashed_messages() %}{% if messages %}<div class="side-card" style="margin-bottom:14px;">{{ messages[-1] }}</div>{% endif %}{% endwith %}
+
+  <div class="volunteer-panel-tabs">
+    <button type="button" class="volunteer-panel-tab active" data-tab="fila">Painel <span>({{ tickets|length }})</span></button>
+    <button type="button" class="volunteer-panel-tab" data-tab="conversas">Conversas <span>({{ conversations|length }})</span></button>
+  </div>
+
+  <section class="volunteer-panel-tabpage" data-tabpage="fila">
+    <div class="screen-heading"><p class="eyebrow">FILA DE ATENDIMENTO</p><h2>Pedidos disponíveis</h2><p>Priorize os casos mais urgentes e assuma um atendimento quando estiver pronto.</p></div>
+    <div class="volunteer-ticket-grid">
+      {% for t in tickets %}
+      <article class="volunteer-ticket {{ 'critical' if t.urgency in ('critica','alta') }}">
+        <span class="urgency">{{ t.urgency }}</span>
+        <h3>Atendimento #{{ t.id }}</h3>
+        {% if t.area_labels() %}<div class="volunteer-areas-tags">{% for label in t.area_labels() %}<span>{{ label }}</span>{% endfor %}</div>{% endif %}
+        <p class="description">{{ t.description }}</p>
+        <p style="font-size:9px;color:var(--muted);">Status: {{ t.status }} · {{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+        <form method="post" action="{{ url_for('volunteer.assume_ticket', ticket_id=t.id) }}"><button class="outline-btn" type="submit">Assumir atendimento</button></form>
+      </article>
+      {% else %}<div class="side-card">Não há atendimentos na fila neste momento.</div>{% endfor %}
+    </div>
+
+    <section class="volunteer-history">
+      <div class="screen-heading"><p class="eyebrow">HISTÓRICO</p><h2>Atendimentos encerrados</h2></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Ticket</th><th>Urgência</th><th>Data</th><th>Anotação</th><th>Status</th></tr></thead><tbody>
+      {% for t in history %}<tr><td>#{{ t.id }}</td><td>{{ t.urgency }}</td><td>{{ t.updated_at.strftime('%d/%m/%Y %H:%M') if t.updated_at else '—' }}</td><td>{{ t.closing_note or t.admin_note or '—' }}</td><td>{{ t.status }}</td></tr>
+      {% else %}<tr><td colspan="5">Nenhum atendimento encerrado.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+  </section>
+
+  <section class="volunteer-panel-tabpage" data-tabpage="conversas" hidden>
+    <div class="screen-heading"><p class="eyebrow">SUAS CONVERSAS</p><h2>Atendimentos em andamento</h2><p>A conversa fica salva e ativa até você marcar para encerrar.</p></div>
+    <div class="volunteer-conversation-grid">
+      {% for t in conversations %}
+      <article class="volunteer-conversation" data-ticket-id="{{ t.id }}">
+        <div class="chat-window">
+          <div class="chat-header">
+            <img src="{{ url_for('static', filename='img/logo-rastro.png') }}" alt="" class="chat-header-avatar">
+            <div><strong>Atendimento #{{ t.id }} · {{ t.urgency }}</strong><small>{% if t.area_labels() %}{{ t.area_labels()|join(', ') }}{% else %}Sem área marcada{% endif %}</small></div>
+          </div>
+          <div class="chat-log volunteer-conv-log" id="conv-log-{{ t.id }}">
+            {% for m in t.messages %}
+            <div class="bubble {{ 'user' if m.sender == 'voluntario' else 'rastro' }}">{{ m.text }}</div>
+            {% endfor %}
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input conv-input" id="conv-input-{{ t.id }}" placeholder="Responder..." autocomplete="off">
+            <button class="send-btn conv-send" data-ticket-id="{{ t.id }}">Enviar</button>
+          </div>
+        </div>
+        <div class="volunteer-conv-actions">
+          <form class="volunteer-close-form" method="post" action="{{ url_for('volunteer.close_ticket', ticket_id=t.id) }}">
+            <textarea name="closing_note" rows="3" placeholder="Anotação do atendimento e encaminhamento..." required></textarea>
+            <button class="primary-btn" type="submit">Encerrar atendimento</button>
+          </form>
+          <form method="post" action="{{ url_for('volunteer.forward_cvv', ticket_id=t.id) }}" onsubmit="return confirm('Encaminhar essa conversa para a mensagem pronta do CVV e encerrar o atendimento?');">
+            <button class="outline-btn" type="submit">Encaminhar para o CVV</button>
+          </form>
+        </div>
+      </article>
+      {% else %}<div class="side-card">Você ainda não tem conversas em andamento. Assuma um atendimento na aba Painel.</div>{% endfor %}
+    </div>
+  </section>
+</main>
+<script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>RastroVolunteerPanel.init();</script>
+</body></html>
