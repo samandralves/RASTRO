@@ -936,3 +936,17 @@
       rewardButtons.forEach((rewardBtn) => {
         rewardBtn.addEventListener("click", () => selectReward(rewardBtn));
       });
+      confirmBtn.addEventListener("click", confirmExchange);
+
+      modal.addEventListener("click", (e) => {
+        if (e.target.closest("[data-close-troca]")) close();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.hidden) close();
+      });
+    },
+  };
+
+  window.RastroWorld = RastroWorld;
+  window.RastroTroca = RastroTroca;
+})();
