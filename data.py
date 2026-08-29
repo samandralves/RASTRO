@@ -7,21 +7,25 @@ aqui — isso agora vive no banco (models.py).
 """
 
 WORLD_ELEMENTS = [
-    (0, "🌱", "Seu primeiro passo"),
-    (15, "🪴", "Uma pequena constância"),
-    (30, "🌳", "Uma barreira atravessada"),
-    (50, "🏡", "Um espaço que começa a ser seu"),
-    (75, "🐦", "Mais movimento no seu mundo"),
-    (105, "🌸", "Seu rastro está florescendo"),
+    (0, "🏡", "Um espaço que já é seu"),
+    (15, "🌱", "Seu primeiro passo"),
+    (30, "🌊", "Um lago calmo pra respirar"),
+    (50, "🪑", "Um banco pra descansar"),
+    (75, "🌳", "Uma barreira atravessada"),
+    (95, "🪴", "Uma pequena constância"),
+    (120, "🐦", "Mais movimento no seu mundo"),
+    (145, "🌸", "Seu rastro está florescendo"),
 ]
 
 WORLD_ELEMENT_MESSAGES = {
     0: "Você não precisa ter tudo planejado para começar. O importante é dar o primeiro passo e confiar que cada avanço te levará mais perto do seu objetivo.",
-    15: "Nem todo dia será fácil, mas cada pequeno esforço conta. Continue avançando, porque é a constância de hoje que constrói os resultados de amanhã.",
-    30: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
-    50: "Cada conquista é um passo na direção do seu melhor.",
-    75: "Cada conquista é um passo na direção do seu melhor.",
-    105: "Cada conquista é um passo na direção do seu melhor.",
+    15: "Todo caminho começa em algum lugar. Essa pequena semente é a prova de que você já começou.",
+    30: "Nem tudo precisa ser feito com pressa. Às vezes, o avanço também é parar, respirar e continuar depois.",
+    50: "Olhar pra trás e ver o quanto você já andou também é progresso.",
+    75: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
+    95: "Nem todo dia será fácil, mas cada pequeno esforço conta. Continue avançando, porque é a constância de hoje que constrói os resultados de amanhã.",
+    120: "Cada conquista é um passo na direção do seu melhor.",
+    145: "Cada conquista é um passo na direção do seu melhor.",
 }
 
 # ---------------- TROCA DE PONTOS: recompensas disponíveis ----------------
