@@ -31,27 +31,9 @@
   const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
   const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
 
-  // Cenário fixo: está sempre lá, não depende do progresso do usuário.
-  const SCENERY = [
-    {
-      key: "pond",
-      url: "/static/img/pond.png",
-      baseWidth: 96,
-      offset: { x: -58, y: -8 },
-      anchor: { x: 0.5, y: 0.62 },
-      label: "Um lago calmo pra respirar entre uma tarefa e outra.",
-      idle: "shimmer",
-    },
-    {
-      key: "bench",
-      url: "/static/img/bench.png",
-      baseWidth: 76,
-      offset: { x: 46, y: -2 },
-      anchor: { x: 0.5, y: 0.78 },
-      label: "Um banco pra sentar e olhar o quanto você já andou.",
-      idle: null,
-    },
-  ];
+  // Cenário fixo — atualmente vazio: lago e banco viraram elementos de
+  // progressão (ver ELEMENT_SLOTS) em vez de aparecerem sempre na ilha.
+  const SCENERY = [];
 
   // Elementos do WORLD: um lugar na ilha para cada marca de
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
@@ -59,39 +41,53 @@
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
   const ELEMENT_SLOTS = {
     0: {
-      baseWidth: 30,
-      offset: { x: -6, y: -14 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    15: {
-      url: "/static/img/regador-emoji.png",
-      baseWidth: 32,
-      offset: { x: 22, y: -12 },
-      anchor: { x: 0.5, y: 1 },
-      idle: null,
-    },
-    30: {
-      url: "/static/img/tree.png",
-      baseWidth: 78,
-      offset: { x: 24, y: -58 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    50: {
       url: "/static/img/house.png",
       baseWidth: 95,
       offset: { x: -38, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
+    15: {
+      baseWidth: 30,
+      offset: { x: -6, y: -14 },
+      anchor: { x: 0.5, y: 1 },
+      idle: "sway",
+    },
+    30: {
+      url: "/static/img/pond.png",
+      baseWidth: 96,
+      offset: { x: -58, y: -8 },
+      anchor: { x: 0.5, y: 0.62 },
+      idle: "shimmer",
+    },
+    50: {
+      url: "/static/img/bench.png",
+      baseWidth: 76,
+      offset: { x: 46, y: -2 },
+      anchor: { x: 0.5, y: 0.78 },
+      idle: null,
+    },
     75: {
+      url: "/static/img/tree.png",
+      baseWidth: 78,
+      offset: { x: 24, y: -58 },
+      anchor: { x: 0.5, y: 1 },
+      idle: "sway",
+    },
+    95: {
+      url: "/static/img/regador-emoji.png",
+      baseWidth: 32,
+      offset: { x: 22, y: -12 },
+      anchor: { x: 0.5, y: 1 },
+      idle: null,
+    },
+    120: {
       baseWidth: 26,
       offset: { x: -52, y: -102 },
       anchor: { x: 0.5, y: 0.5 },
       idle: "fly",
     },
-    105: {
+    145: {
       baseWidth: 26,
       offset: { x: -26, y: -2 },
       anchor: { x: 0.5, y: 1 },
@@ -940,17 +936,3 @@
       rewardButtons.forEach((rewardBtn) => {
         rewardBtn.addEventListener("click", () => selectReward(rewardBtn));
       });
-      confirmBtn.addEventListener("click", confirmExchange);
-
-      modal.addEventListener("click", (e) => {
-        if (e.target.closest("[data-close-troca]")) close();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.hidden) close();
-      });
-    },
-  };
-
-  window.RastroWorld = RastroWorld;
-  window.RastroTroca = RastroTroca;
-})();
