@@ -31,7 +31,7 @@
   const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
   const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
 
-  // Cenário fixo — atualmente vazio: lago e banco viraram elementos de
+    // Cenário fixo — atualmente vazio: lago e banco viraram elementos de
   // progressão (ver ELEMENT_SLOTS) em vez de aparecerem sempre na ilha.
   const SCENERY = [];
 
@@ -39,43 +39,38 @@
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
   // não foi conquistado aparece apagado e pode ser obtido com pontos.
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
-  _SLOTS = {
+  const ELEMENT_SLOTS = {
     0: {
-      baseWidth: 30,
-      offset: { x: -6, y: -14 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    15: {
-      url: "/static/img/regador-emoji.png",
-      baseWidth: 32,
-      offset: { x: 22, y: -12 },
-      anchor: { x: 0.5, y: 1 },
-      idle: null,
-    },
-    30: {
-      url: "/static/img/tree.png",
-      baseWidth: 78,
-      offset: { x: 24, y: const ELEMENT-58 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    50: {
       url: "/static/img/house.png",
       baseWidth: 95,
       offset: { x: -38, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
-    75: {
-      baseWidth: 26,
-      offset: { x: -52, y: -102 },
-      anchor: { x: 0.5, y: 0.5 },
-      idle: "fly",
+    15: {
+      baseWidth: 30,
+      offset: { x: -6, y: -14 },
+      anchor: { x: 0.5, y: 1 },
+      idle: "sway",
     },
-    105: {
-      baseWidth: 26,
-      offset: { x: -26, y: -2 },
+    30: {
+      url: "/static/img/pond.png",
+      baseWidth: 96,
+      offset: { x: -58, y: -8 },
+      anchor: { x: 0.5, y: 0.62 },
+      idle: "shimmer",
+    },
+    50: {
+      url: "/static/img/bench.png",
+      baseWidth: 76,
+      offset: { x: 46, y: -2 },
+      anchor: { x: 0.5, y: 0.78 },
+      idle: null,
+    },
+    75: {
+      url: "/static/img/tree.png",
+      baseWidth: 78,
+      offset: { x: 24, y: -58 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
