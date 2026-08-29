@@ -74,27 +74,8 @@
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
-    95: {
-      url: "/static/img/regador-emoji.png",
-      baseWidth: 32,
-      offset: { x: 22, y: -12 },
-      anchor: { x: 0.5, y: 1 },
-      idle: null,
-    },
-    120: {
-      baseWidth: 26,
-      offset: { x: -52, y: -102 },
-      anchor: { x: 0.5, y: 0.5 },
-      idle: "fly",
-    },
-    145: {
-      baseWidth: 26,
-      offset: { x: -26, y: -2 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
   };
-
+  
   const COLORS = {
     brand: 0x4fe0b3,
     locked: 0x7f90ad,
