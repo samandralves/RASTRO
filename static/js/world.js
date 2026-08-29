@@ -47,12 +47,6 @@
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
-    15: {
-      baseWidth: 30,
-      offset: { x: -6, y: -14 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
