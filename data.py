@@ -8,7 +8,6 @@ aqui — isso agora vive no banco (models.py).
 
 WORLD_ELEMENTS = [
     (0, "🏡", "Um espaço que já é seu"),
-    (15, "🌱", "Seu primeiro passo"),
     (30, "🌊", "Um lago calmo pra respirar"),
     (50, "🪑", "Um banco pra descansar"),
     (75, "🌳", "Uma barreira atravessada"),
@@ -16,11 +15,11 @@ WORLD_ELEMENTS = [
 
 WORLD_ELEMENT_MESSAGES = {
     0: "Você não precisa ter tudo planejado para começar. O importante é dar o primeiro passo e confiar que cada avanço te levará mais perto do seu objetivo.",
-    15: "Todo caminho começa em algum lugar. Essa pequena semente é a prova de que você já começou.",
     30: "Nem tudo precisa ser feito com pressa. Às vezes, o avanço também é parar, respirar e continuar depois.",
     50: "Olhar pra trás e ver o quanto você já andou também é progresso.",
     75: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
 }
+
 # ---------------- TROCA DE PONTOS: recompensas disponíveis ----------------
 BENEFITS = [
     {"id": "gympass", "emoji": "🏋️", "label": "Wellhub (Gympass)", "cost": 500, "description": "Benefício de atividade física por parceiro."},
