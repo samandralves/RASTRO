@@ -116,7 +116,6 @@
     async _boot() {
       this._buildSky();
       this._buildStars();
-      this._buildClouds();
 
       try {
         await this._buildIsland();
@@ -202,34 +201,6 @@
         this.stars.addChild(g);
       }
       this.worldRoot.addChild(this.stars);
-    }
-
-    // ---------------------------------------------------------- clouds --
-    _buildClouds() {
-      this.clouds = new PIXI.Container();
-      this.cloudData = [];
-
-      const CLOUD_COUNT = 4;
-      for (let i = 0; i < CLOUD_COUNT; i++) {
-        const g = new PIXI.Graphics();
-        const puffs = 3 + Math.floor(Math.random() * 2);
-        g.beginFill(0xbfe0f0, 0.08);
-        for (let p = 0; p < puffs; p++) {
-          const px = p * 22 - (puffs * 22) / 2;
-          const r = 18 + Math.random() * 10;
-          g.drawCircle(px, 0, r);
-        }
-        g.endFill();
-
-        this.cloudData.push({
-          g,
-          ry: Math.random() * 0.3 + 0.05,
-          speed: (Math.random() * 8 + 4) * (Math.random() < 0.5 ? 1 : -1),
-          startX: Math.random(),
-        });
-        this.clouds.addChild(g);
-      }
-      this.worldRoot.addChild(this.clouds);
     }
 
     // ---------------------------------------------------------- island --
@@ -493,14 +464,6 @@
         s.g.alpha = s.baseAlpha * (0.6 + 0.4 * Math.sin(this.time * 0.02 * s.speed + s.phase));
       }
 
-      const w = this.app.renderer.width / this.app.renderer.resolution;
-      for (const c of this.cloudData) {
-        c.g.x += (c.speed * delta) / 60;
-        const half = 90;
-        if (c.g.x > w + half) c.g.x = -half;
-        if (c.g.x < -half) c.g.x = w + half;
-      }
-
       const bob = Math.sin(this.time * 0.02) * 6;
       if (this.islandRoot && this._baseIslandY !== undefined) {
         this.islandRoot.y = this._baseIslandY + bob;
@@ -579,11 +542,6 @@
       for (const s of this.starData) {
         s.g.x = s.rx * w;
         s.g.y = s.ry * h;
-      }
-
-      for (const c of this.cloudData) {
-        c.g.x = c.startX * w;
-        c.g.y = c.ry * h;
       }
 
       if (!this.islandRoot) return;
