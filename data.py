@@ -21,7 +21,6 @@ WORLD_ELEMENT_MESSAGES = {
     50: "Olhar pra trás e ver o quanto você já andou também é progresso.",
     75: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
 }
-}
 
 # ---------------- TROCA DE PONTOS: recompensas disponíveis ----------------
 BENEFITS = [
