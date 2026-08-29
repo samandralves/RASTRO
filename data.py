@@ -12,9 +12,6 @@ WORLD_ELEMENTS = [
     (30, "🌊", "Um lago calmo pra respirar"),
     (50, "🪑", "Um banco pra descansar"),
     (75, "🌳", "Uma barreira atravessada"),
-    (95, "🪴", "Uma pequena constância"),
-    (120, "🐦", "Mais movimento no seu mundo"),
-    (145, "🌸", "Seu rastro está florescendo"),
 ]
 
 WORLD_ELEMENT_MESSAGES = {
@@ -23,9 +20,7 @@ WORLD_ELEMENT_MESSAGES = {
     30: "Nem tudo precisa ser feito com pressa. Às vezes, o avanço também é parar, respirar e continuar depois.",
     50: "Olhar pra trás e ver o quanto você já andou também é progresso.",
     75: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
-    95: "Nem todo dia será fácil, mas cada pequeno esforço conta. Continue avançando, porque é a constância de hoje que constrói os resultados de amanhã.",
-    120: "Cada conquista é um passo na direção do seu melhor.",
-    145: "Cada conquista é um passo na direção do seu melhor.",
+}
 }
 
 # ---------------- TROCA DE PONTOS: recompensas disponíveis ----------------
