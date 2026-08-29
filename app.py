@@ -80,6 +80,13 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
+# importaçao 
+
+from world_routes import world_bp
+app.register_blueprint(world_bp)
+
+from db_sync_routes import db_sync_bp
+app.register_blueprint(db_sync_bp)
 
 # ---------------- autenticação ----------------
 
