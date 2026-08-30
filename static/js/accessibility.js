@@ -1,7 +1,5 @@
 /* ==========================================================================
    RASTRO — Widget de Acessibilidade (100% gratuito, sem dependências pagas)
-   - Aumentar / diminuir fonte
-   - Alto contraste
    - Ler em voz alta (Web Speech API — funciona como "TalkBack" no site)
    - Fonte OpenDyslexic
    - VLibras (widget oficial do Governo Federal, gratuito)
@@ -15,8 +13,6 @@
   const html = document.documentElement;
 
   const defaults = {
-    fontsize: 0,        // -1 a 4
-    contrast: "off",
     dyslexic: "off",
     underline: "off",
     cursor: "off",
@@ -40,8 +36,6 @@
   let prefs = loadPrefs();
 
   function applyPrefs() {
-    html.setAttribute("data-a11y-fontsize", String(prefs.fontsize));
-    html.setAttribute("data-a11y-contrast", prefs.contrast);
     html.setAttribute("data-a11y-dyslexic", prefs.dyslexic);
     html.setAttribute("data-a11y-underline", prefs.underline);
     html.setAttribute("data-a11y-cursor", prefs.cursor);
@@ -90,21 +84,7 @@
     });
   }
 
-  /* ---------------- Fonte ---------------- */
-  function initFontSize() {
-    const inc = document.getElementById("a11y-font-inc");
-    const dec = document.getElementById("a11y-font-dec");
-    if (inc) inc.addEventListener("click", () => {
-      prefs.fontsize = Math.min(4, prefs.fontsize + 1);
-      savePrefs(prefs); applyPrefs();
-    });
-    if (dec) dec.addEventListener("click", () => {
-      prefs.fontsize = Math.max(-1, prefs.fontsize - 1);
-      savePrefs(prefs); applyPrefs();
-    });
-  }
-
-  /* ---------------- Switches genéricos (contraste, dyslexic, etc) ------- */
+  /* ---------------- Switches genéricos (dyslexic, etc) ------- */
   function initSwitches() {
     document.querySelectorAll("[data-a11y-switch]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -205,7 +185,6 @@
   /* ---------------- Init ---------------- */
   document.addEventListener("DOMContentLoaded", () => {
     initPanelToggle();
-    initFontSize();
     initSwitches();
     initReset();
     initSpeech();
