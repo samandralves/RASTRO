@@ -1,933 +1,882 @@
-/**
- * world.js — o WORLD inteiro (cena + interface).
- *
- * A ilha, a casa, a árvore e todos os elementos são desenhados em PixiJS
- * dentro de #world-stage-pixi. Não existe mais versão em CSS: o que está
- * na tela vem daqui.
- *
- * Três peças convivem neste arquivo:
- *   WorldEngine — a cena Pixi (céu, estrelas, nuvens, ilha e elementos).
- *   RastroWorld — a interface em volta (progresso, lista lateral, modais
- *                 de detalhe/compra) que conversa com /api/world/*.
- *   RastroTroca — a janela "Resgatar benefício".
- *
- * O estado do mundo chega do servidor em #world-state (mesmo formato de
- * /api/world/state):
- *   { points, progress, remaining,
- *     elements: [{ cost, emoji, label, owned, message }] }
- *
- * ISLAND_TARGET_WIDTH controla o tamanho final da ilha; o halo e todos os
- * elementos escalam junto, proporcionalmente, para nada ficar
- * desproporcional quando esse valor mudar.
- *
- * Paleta reaproveitada das variáveis do projeto (style.css):
- *   --brand:#4fe0b3  --sun:#f7bd6a  --dusk:#b8a6ef  --bg:#03091a
- */
-
-(function () {
-  "use strict";
-
-  const ISLAND_IMAGE_URL = "/static/img/island-base-mossy.png";
-  const ISLAND_TARGET_WIDTH = 672; // largura final da ilha em px na tela (480 + 40%)
-  const ISLAND_BASE_WIDTH = 340; // tamanho original em que halo/elementos foram calibrados
-
-    // Cenário fixo — atualmente vazio: lago e banco viraram elementos de
-  // progressão (ver ELEMENT_SLOTS) em vez de aparecerem sempre na ilha.
-  const SCENERY = [];
-
-  // Elementos do WORLD: um lugar na ilha para cada marca de
-  // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
-  // não foi conquistado aparece apagado e pode ser obtido com pontos.
-  // Sem `url`, o elemento é desenhado a partir do próprio emoji.
-  const ELEMENT_SLOTS = {
-    0: {
-      url: "/static/img/house.png",
-      baseWidth: 95,
-      offset: { x: -38, y: -60 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "smoke",
-    },
-    30: {
-      url: "/static/img/pond.png",
-      baseWidth: 96,
-      offset: { x: -58, y: -8 },
-      anchor: { x: 0.5, y: 0.62 },
-      idle: "shimmer",
-    },
-    50: {
-      url: "/static/img/bench_recortado.png",
-      baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 17, y: -23 }, // um pouco mais pra baixo (era y: -30)
-      anchor: { x: 0.5, y: 0.78 },
-      idle: null,
-    },
-    75: {
-      url: "/static/img/arvore_azul.png",
-      baseWidth: 78,
-      offset: { x: 24, y: -58 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    // Árvore roxa — mesmo tratamento visual da árvore azul (slot 75),
-    // espelhada pro outro lado da ilha pra não sobrepor a primeira.
-    100: {
-      url: "/static/img/arvore_roxa.png",
-      baseWidth: 78,
-      offset: { x: -28, y: -56 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-  };
-
-  // Texto fixo de cada balão (visual de referência do mundo). Não depende
-  // do `label`/`message` que vêm do servidor — é sempre este texto, pro
-  // item aparecer ou não (bloqueado ou não).
-  const ELEMENT_MESSAGES = {
-    0: "Sua casinha no mundo — cresce junto com você.",
-    30: "Um lago calmo pra respirar entre uma tarefa e outra.",
-    50: "Um banco pra sentar e ver o quanto você já andou.",
-    75: "Uma árvore que cresce a cada nova novidade.",
-    100: "Uma árvore roxa que floresce quando você vai além.",
-  };
-
-  // Paleta usada pelo engine (halo da ilha, itens bloqueados, tooltip).
-  // Reaproveitada das variáveis de style.css citadas no cabeçalho deste
-  // arquivo. Ajuste aqui se os tons de style.css mudarem.
-  const COLORS = {
-    brand: 0x4fe0b3,
-    sun: 0xf7bd6a,
-    dusk: 0xb8a6ef,
-    bg: 0x03091a,
-    locked: 0x8a97ad,
-    tooltipBg: 0x0b1830,
-    tooltipBorder: 0x4fe0b3,
-  };
-
-  class WorldEngine {
-    constructor(containerId, options) {
-      this.container = document.getElementById(containerId);
-      if (!this.container) return;
-
-      this.options = options || {};
-
-      this.app = new PIXI.Application({
-        resizeTo: this.container,
-        backgroundAlpha: 0,
-        antialias: true,
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
-        autoDensity: true,
-      });
-
-      this.container.appendChild(this.app.view);
-
-      this.worldRoot = new PIXI.Container();
-      this.app.stage.addChild(this.worldRoot);
-
-      this.time = 0;
-      this.hoverables = []; // itens com animação de escala (hover)
-      this.smokePuffs = []; // fumacinha da chaminé
-      this.tooltips = []; // balões de texto ativos
-      this.pieces = []; // tudo que está na ilha (cenário + elementos)
-      this.state = null;
-
-      this._boot();
-    }
-
-    async _boot() {
-      this._buildSky();
-      this._buildStars();
-
-      try {
-        await this._buildIsland();
-      } catch (err) {
-        console.error("[world] falha ao carregar a ilha (" + ISLAND_IMAGE_URL + "):", err);
-      }
-
-      try {
-        await this._buildScenery();
-        if (this.state) await this._buildElements();
-      } catch (err) {
-        console.error("[world] falha ao montar os elementos da ilha:", err);
-      }
-
-      this.app.ticker.add((delta) => this._tick(delta));
-
-      this._layout();
-      window.addEventListener("resize", () => this._layout());
-
-      this.ready = true;
-      // sempre esconde o loading no final, mesmo se alguma imagem falhou —
-      // assim a cena nunca fica travada em "Preparando seu mundo..."
-      this._hideLoading();
-    }
-
-    /** Atualiza a cena com um estado novo vindo do servidor. */
-    async setState(state) {
-      this.state = state;
-      if (!this.elementLayer) return; // ainda montando: _boot usa this.state
-      await this._buildElements();
-      this._layout();
-    }
-
-    _hideLoading() {
-      const loading = document.getElementById("world-loading");
-      if (loading) {
-        loading.classList.add("hidden");
-        setTimeout(() => loading.remove(), 400);
-      }
-    }
-
-    // -------------------------------------------------------------- sky --
-    _buildSky() {
-      const w = 32, h = 480;
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, "#03091a");
-      grad.addColorStop(0.65, "#06152b");
-      grad.addColorStop(1, "#0b2830");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-
-      this.skyTexture = PIXI.Texture.from(canvas);
-      this.sky = new PIXI.Sprite(this.skyTexture);
-      this.worldRoot.addChild(this.sky);
-    }
-
-    // ----------------------------------------------------------- stars --
-    _buildStars() {
-      this.stars = new PIXI.Container();
-      this.starData = [];
-
-      const STAR_COUNT = 60;
-      for (let i = 0; i < STAR_COUNT; i++) {
-        const g = new PIXI.Graphics();
-        const r = Math.random() * 1.4 + 0.6;
-        g.beginFill(0xffffff);
-        g.drawCircle(0, 0, r);
-        g.endFill();
-        g.alpha = Math.random() * 0.6 + 0.2;
-
-        this.starData.push({
-          g,
-          baseAlpha: g.alpha,
-          speed: Math.random() * 1.5 + 0.5,
-          phase: Math.random() * Math.PI * 2,
-          rx: Math.random(),
-          ry: Math.random() * 0.7,
-        });
-        this.stars.addChild(g);
-      }
-      this.worldRoot.addChild(this.stars);
-    }
-
-    // ---------------------------------------------------------- island --
-    async _buildIsland() {
-      this.islandRoot = new PIXI.Container();
-
-      // fator de escala aplicado no halo e em todos os elementos, pra
-      // crescerem junto com a ilha quando ISLAND_TARGET_WIDTH mudar
-      const scaleFactor = ISLAND_TARGET_WIDTH / ISLAND_BASE_WIDTH;
-      this._islandScaleFactor = scaleFactor;
-
-      // brilho suave atrás da ilha (halo)
-      const glow = new PIXI.Graphics();
-      glow.beginFill(COLORS.brand, 0.1);
-      glow.drawEllipse(0, 0, 190, 90);
-      glow.endFill();
-      glow.filters = [new PIXI.BlurFilter(24)];
-      glow.scale.set(scaleFactor);
-      this.islandRoot.addChild(glow);
-
-      // ilha vinda da imagem
-      const texture = await PIXI.Assets.load(ISLAND_IMAGE_URL);
-      const island = new PIXI.Sprite(texture);
-
-      // centro da imagem = origem (0,0) do islandRoot, onde todos os
-      // elementos se posicionam em cima
-      island.anchor.set(0.5, 0.5);
-      island.scale.set(ISLAND_TARGET_WIDTH / island.texture.width);
-
-      this.islandRoot.addChild(island);
-      this.island = island;
-      this.worldRoot.addChild(this.islandRoot);
-
-      // camada dos itens, sempre acima da ilha. O cenário nunca é
-      // reconstruído; os elementos sim, a cada mudança de estado.
-      this.decorLayer = new PIXI.Container();
-      this.islandRoot.addChild(this.decorLayer);
-
-      this.sceneryLayer = new PIXI.Container();
-      this.elementLayer = new PIXI.Container();
-      this.decorLayer.addChild(this.sceneryLayer, this.elementLayer);
-    }
-
-    // --------------------------------------------------------- cenário --
-    async _buildScenery() {
-      for (const item of SCENERY) {
-        await this._addPiece(this.sceneryLayer, item, { locked: false });
-      }
-    }
-
-    // ------------------------------------------------------- elementos --
-    async _buildElements() {
-      // limpa só os elementos (o cenário fica onde está)
-      this.pieces = this.pieces.filter((piece) => {
-        if (!piece.isElement) return true;
-        piece.destroy();
-        return false;
-      });
-      this.hoverables = this.hoverables.filter((h) => !h.piece.isElement);
-      this.smokePuffs.forEach((puff) => puff.g.destroy());
-      this.smokePuffs = [];
-      this.elementLayer.removeChildren();
-
-      for (const element of (this.state && this.state.elements) || []) {
-        const slot = ELEMENT_SLOTS[element.cost];
-        if (!slot) continue; // marca sem lugar na ilha: aparece só na lista lateral
-        await this._addPiece(
-          this.elementLayer,
-          {
-            key: "element-" + element.cost,
-            url: slot.url,
-            emoji: element.emoji,
-            baseWidth: slot.baseWidth,
-            offset: slot.offset,
-            anchor: slot.anchor,
-            idle: slot.idle,
-            label: element.label,
-            tooltipText: ELEMENT_MESSAGES[element.cost] || null,
-            element: element,
-          },
-          { locked: !element.owned }
-        );
-      }
-
-      this._measureTop();
-    }
-
-    /** Cria o sprite de um item (imagem ou emoji) e pendura na camada. */
-    async _addPiece(layer, item, opts) {
-      const scaleFactor = this._islandScaleFactor || 1;
-      const locked = !!(opts && opts.locked);
-
-      let sprite;
-      if (item.url) {
-        let texture;
-        try {
-          texture = await PIXI.Assets.load(item.url);
-        } catch (err) {
-          console.error("[world] falha ao carregar " + item.key + " (" + item.url + "):", err);
-          return null;
-        }
-        sprite = new PIXI.Sprite(texture);
-      } else {
-        // sem imagem: o próprio emoji vira o sprite
-        sprite = new PIXI.Text(item.emoji || "✦", new PIXI.TextStyle({ fontSize: 96 }));
-      }
-
-      sprite.anchor.set(item.anchor.x, item.anchor.y);
-
-      // sprite.width já considera a escala atual (1 aqui), então a razão
-      // abaixo leva o item exatamente para baseWidth * escala da ilha
-      const baseScale = (item.baseWidth / sprite.width) * scaleFactor;
-      sprite.scale.set(baseScale);
-      sprite.x = item.offset.x * scaleFactor;
-      sprite.y = item.offset.y * scaleFactor;
-
-      if (locked) {
-        sprite.alpha = 0.22;
-        sprite.tint = COLORS.locked;
-      }
-
-      // sombra leve embaixo, pra "fixar" o item na grama
-      const shadow = new PIXI.Graphics();
-      shadow.beginFill(0x03091a, locked ? 0.1 : 0.28);
-      const radius = (sprite.width / baseScale) * 0.3;
-      shadow.drawEllipse(0, 0, radius, radius * 0.34);
-      shadow.endFill();
-      shadow.filters = [new PIXI.BlurFilter(6)];
-      shadow.x = sprite.x;
-      shadow.y = sprite.y - (item.anchor.y === 1 ? 2 : 0);
-      shadow.scale.set(baseScale);
-      layer.addChildAt(shadow, 0);
-      layer.addChild(sprite);
-
-      const piece = {
-        item,
-        sprite,
-        shadow,
-        baseScale,
-        locked,
-        isElement: !!item.element,
-        smokeTimer: 0,
-        smokeOrigin: null,
-        destroy() {
-          layer.removeChild(sprite);
-          layer.removeChild(shadow);
-          sprite.destroy();
-          shadow.destroy();
-        },
-      };
-      this.pieces.push(piece);
-
-      this._makeInteractive(piece);
-
-      if (item.idle === "smoke" && !locked) {
-        // saída aproximada da chaminé, relativa ao sprite (anchor 0.5,1)
-        piece.smokeOrigin = { x: sprite.width * 0.3, y: -sprite.height * 0.92 };
-      }
-      return piece;
-    }
-
-    _measureTop() {
-      // ponto mais alto entre todos os itens (coordenada local, antes da
-      // escala do islandRoot) — usado no _layout pra nunca cortar nada no topo
-      this._decorTopLocal = this.decorLayer.getLocalBounds().y;
-    }
-
-    // ---------------------------------------------------- interatividade --
-    _makeInteractive(piece) {
-      const sprite = piece.sprite;
-      sprite.eventMode = "static";
-      sprite.cursor = "pointer";
-
-      const state = { piece, sprite, currentMul: 1, targetMul: 1, hovering: false };
-      this.hoverables.push(state);
-
-      sprite.on("pointerover", () => {
-        state.targetMul = 1.1;
-        state.hovering = true;
-      });
-      sprite.on("pointerout", () => {
-        state.targetMul = 1;
-        state.hovering = false;
-      });
-      sprite.on("pointertap", () => {
-        // pequeno "pulo" de clique, além do zoom de hover
-        state.targetMul = 1.22;
-        setTimeout(() => {
-          state.targetMul = state.hovering ? 1.1 : 1;
-        }, 140);
-
-        // balão de texto: usa o texto fixo do elemento (casa/lago/banco/
-        // árvore), aparecendo sempre — obtido ou não. Se não houver texto
-        // fixo, cai pro label do próprio elemento.
-        if (piece.item.tooltipText) {
-          this._showTooltip(sprite, piece.item.tooltipText);
-        } else if (piece.item.label) {
-          this._showTooltip(sprite, piece.item.label);
-        }
-
-        // o modal de detalhe/compra só abre pra item ainda bloqueado (é
-        // por ele que a compra acontece). Item já obtido fica só com o
-        // balão — sem a tela de "você já descobriu essa marca".
-        if (piece.item.element && !piece.item.element.owned && this.options.onSelectElement) {
-          this.options.onSelectElement(piece.item.element);
-        }
-      });
-    }
-
-    _showTooltip(sprite, text) {
-      const container = new PIXI.Container();
-
-      const label = new PIXI.Text(
-        text,
-        new PIXI.TextStyle({
-          fontFamily: "Space Grotesk, sans-serif",
-          fontSize: 13,
-          fontWeight: "600",
-          fill: 0xe9f2ff,
-          wordWrap: true,
-          wordWrapWidth: 180,
-          align: "center",
-        })
-      );
-      label.anchor.set(0.5, 0.5);
-
-      const paddingX = 14, paddingY = 10;
-      const bg = new PIXI.Graphics();
-      bg.lineStyle(1, COLORS.tooltipBorder, 0.6);
-      bg.beginFill(COLORS.tooltipBg, 0.92);
-      bg.drawRoundedRect(
-        -label.width / 2 - paddingX,
-        -label.height / 2 - paddingY,
-        label.width + paddingX * 2,
-        label.height + paddingY * 2,
-        10
-      );
-      bg.endFill();
-
-      // setinha (tail) do balão, apontando pro item — como na referência
-      const tailSize = 7;
-      const tailY = label.height / 2 + paddingY;
-      bg.lineStyle(1, COLORS.tooltipBorder, 0.6);
-      bg.beginFill(COLORS.tooltipBg, 0.92);
-      bg.moveTo(-tailSize, tailY);
-      bg.lineTo(0, tailY + tailSize);
-      bg.lineTo(tailSize, tailY);
-      bg.closePath();
-      bg.endFill();
-
-      container.addChild(bg, label);
-      container.x = sprite.x;
-      container.y = sprite.y - sprite.height - 18;
-      container.alpha = 0;
-      container.scale.set(0.9);
-
-      this.decorLayer.addChild(container);
-      this.tooltips.push({ container, born: this.time, ttl: 210 });
-    }
-
-    // ------------------------------------------------------------ fumaça --
-    _spawnSmokePuff(piece) {
-      const g = new PIXI.Graphics();
-      g.beginFill(0xcfd9e8, 0.22);
-      g.drawCircle(0, 0, 3 + Math.random() * 2);
-      g.endFill();
-      g.x = piece.sprite.x + piece.smokeOrigin.x + (Math.random() * 6 - 3);
-      g.y = piece.sprite.y + piece.smokeOrigin.y;
-      this.elementLayer.addChild(g);
-      this.smokePuffs.push({
-        g,
-        born: this.time,
-        vx: (Math.random() * 0.3 - 0.15) * (this._islandScaleFactor || 1),
-        vy: -(0.5 + Math.random() * 0.3) * (this._islandScaleFactor || 1),
-      });
-    }
-
-    // ------------------------------------------------------------ tick --
-    _tick(delta) {
-      this.time += delta;
-
-      for (const s of this.starData) {
-        s.g.alpha = s.baseAlpha * (0.6 + 0.4 * Math.sin(this.time * 0.02 * s.speed + s.phase));
-      }
-
-      const bob = Math.sin(this.time * 0.02) * 6;
-      if (this.islandRoot && this._baseIslandY !== undefined) {
-        this.islandRoot.y = this._baseIslandY + bob;
-        this.islandRoot.rotation = Math.sin(this.time * 0.012) * 0.01;
-      }
-
-      this._tickPieces(delta);
-    }
-
-    _tickPieces(delta) {
-      // hover/clique: aproxima suavemente a escala atual da escala-alvo
-      for (const state of this.hoverables) {
-        state.currentMul += (state.targetMul - state.currentMul) * Math.min(1, 0.18 * delta);
-        state.sprite.scale.set(state.piece.baseScale * state.currentMul);
-      }
-
-      const scaleFactor = this._islandScaleFactor || 1;
-      for (const piece of this.pieces) {
-        const sprite = piece.sprite;
-        if (piece.item.idle === "sway") {
-          sprite.rotation = Math.sin(this.time * 0.02) * 0.045;
-        } else if (piece.item.idle === "shimmer") {
-          sprite.alpha = piece.locked ? 0.22 : 0.94 + Math.sin(this.time * 0.04) * 0.06;
-        } else if (piece.item.idle === "fly") {
-          sprite.x = piece.item.offset.x * scaleFactor + Math.sin(this.time * 0.012) * 18;
-          sprite.y = piece.item.offset.y * scaleFactor + Math.sin(this.time * 0.035) * 6;
-        } else if (piece.item.idle === "smoke" && piece.smokeOrigin) {
-          piece.smokeTimer -= delta;
-          if (piece.smokeTimer <= 0) {
-            this._spawnSmokePuff(piece);
-            piece.smokeTimer = 55 + Math.random() * 25;
-          }
-        }
-      }
-
-      // partículas de fumaça
-      for (let i = this.smokePuffs.length - 1; i >= 0; i--) {
-        const p = this.smokePuffs[i];
-        const age = this.time - p.born;
-        p.g.x += p.vx * delta;
-        p.g.y += p.vy * delta;
-        p.g.alpha = Math.max(0, 0.22 - age * 0.0022);
-        p.g.scale.set(1 + age * 0.01);
-        if (age > 110) {
-          this.elementLayer.removeChild(p.g);
-          p.g.destroy();
-          this.smokePuffs.splice(i, 1);
-        }
-      }
-
-      // balões de texto: fade in, segura um tempo, fade out e remove
-      for (let i = this.tooltips.length - 1; i >= 0; i--) {
-        const t = this.tooltips[i];
-        const age = this.time - t.born;
-        if (age < 14) {
-          t.container.alpha = Math.min(1, age / 14);
-          t.container.scale.set(0.9 + 0.1 * Math.min(1, age / 14));
-        } else if (age > t.ttl - 20 && age <= t.ttl) {
-          t.container.alpha = Math.max(0, (t.ttl - age) / 20);
-        } else if (age > t.ttl) {
-          this.decorLayer.removeChild(t.container);
-          t.container.destroy({ children: true });
-          this.tooltips.splice(i, 1);
-        }
-      }
-    }
-
-    // ---------------------------------------------------------- layout --
-    _layout() {
-      const w = this.container.clientWidth;
-      const h = this.container.clientHeight;
-
-      this.sky.width = w;
-      this.sky.height = h;
-
-      for (const s of this.starData) {
-        s.g.x = s.rx * w;
-        s.g.y = s.ry * h;
-      }
-
-      if (!this.islandRoot) return;
-
-      this.islandRoot.x = w / 2;
-
-      const islandScale = Math.max(Math.min(1, w / 640), 0.55);
-      this.islandRoot.scale.set(islandScale);
-
-      // posição vertical "ideal"...
-      let baseY = h * 0.62;
-
-      // ...mas nunca deixando o item mais alto passar do topo do palco: se
-      // passaria, empurra a ilha pra baixo até caber com uma margem.
-      const TOP_MARGIN = 24;
-      if (this._decorTopLocal !== undefined) {
-        const minY = TOP_MARGIN - this._decorTopLocal * islandScale;
-        if (baseY < minY) baseY = minY;
-      }
-
-      this._baseIslandY = baseY;
-      this.islandRoot.y = baseY;
-    }
+/* world.css — estilos exclusivos do WORLD.
+   Carregado só nas telas do WORLD (world/index.html, world/mundo_real.html
+   e world/questionario.html) através do bloco {% block head %} do base.html.
+
+   Aqui ficam: o palco da cena PixiJS, a caixa de progresso, a lista de
+   marcas, os modais (detalhe / item obtido / resgate de benefício), as abas
+   e o Mundo Real. Nada disso vive mais no style.css.
+
+   A ilha, a casa e os elementos NÃO são desenhados em CSS — quem cuida
+   disso é o PixiJS em static/js/world.js. */
+
+/* ---------------- palco da cena (PixiJS) ---------------- */
+
+.world-stage-pixi{
+  position:relative;
+  width:100%;
+  max-width:1000px;
+  height:670px; /* 480px + 40%, acompanhando o crescimento da ilha */
+  margin:0 auto;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid rgba(143,192,224,.16);
+  box-shadow:0 22px 70px rgba(0,0,0,.34);
+  background:#03091a;
+}
+
+.world-stage-pixi canvas{
+  display:block;
+  width:100% !important;
+  height:100% !important;
+}
+
+.world-loading{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#91a0bf;
+  font:600 12px "Space Grotesk",sans-serif;
+  letter-spacing:.5px;
+  background:#03091a;
+  z-index:2;
+  transition:opacity .4s ease;
+  pointer-events:none;
+}
+
+.world-loading.hidden{
+  opacity:0;
+}
+
+/* ---------------- progresso, marcas, modais e Mundo Real ---------------- */
+
+.world-progress-box{
+  margin-top:10px;
+  background:rgba(8,31,52,.82);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:12px 14px
+}
+
+.progress-row,
+.unlock-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:9px;
+  color:var(--muted)
+}
+
+.progress-row strong{
+  color:var(--sun);
+  font:600 10px Space Grotesk
+}
+
+.progress-track{
+  height:6px;
+  background:rgba(255,255,255,.07);
+  border-radius:99px;
+  overflow:hidden;
+  margin:8px 0 6px
+}
+
+.progress-track span{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,var(--brand),#6bceb4);
+  box-shadow:0 0 10px rgba(79,224,179,.35);
+  transition:.3s
+}
+
+.unlocks{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px
+}
+
+.unlocks button{
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  border-radius:10px;
+  padding:7px 4px;
+  text-align:center;
+  opacity:.35;
+  filter:grayscale(1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  aspect-ratio:1/1;
+  width:100%;
+  cursor:pointer;
+  font-family:inherit;
+  transition:.2s
+}
+
+.unlocks button.unlocked{
+  opacity:1;
+  filter:none;
+  border-color:rgba(79,224,179,.2);
+  background:rgba(79,224,179,.04)
+}
+
+.unlocks b{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  line-height:1
+}
+
+.unlocks small{
+  display:block;
+  color:#8b9ab6;
+  font-size:7.5px;
+  line-height:1.25;
+  margin-top:1px
+}
+
+.badge-icon-img{
+  width:42px;
+  height:42px;
+  object-fit:contain
+}
+
+.unlocks button:hover,
+.unlocks button:focus-visible{
+  transform:translateY(-2px);
+  border-color:rgba(79,224,179,.4)
+}
+
+.unlocks button:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:2px
+}
+
+.unlocks button.unlocked:hover{
+  box-shadow:0 0 16px rgba(79,224,179,.18)
+}
+
+/* ---------------- WORLD: cor própria por marca na lista lateral ----------------
+   Por padrão, toda marca desbloqueada (.unlocks button.unlocked) fica verde
+   (--brand), vindo da regra genérica acima. As regras abaixo sobrescrevem
+   isso pontualmente, sem mexer no comportamento das demais marcas:
+     - árvore azul (cost 75): verde -> azul
+     - árvore roxa (cost 100): verde -> roxo
+
+   IMPORTANTE: o ícone dentro de <b> é um emoji (ex.: 🌳), não texto nem
+   SVG — por isso a propriedade `color` NÃO muda a cor dele (emoji é uma
+   imagem colorida renderizada pelo sistema, `color` só afeta texto). Quem
+   funciona em cima de emoji é `filter`, que atua sobre o pixel já
+   renderizado. Por isso usamos hue-rotate abaixo, girando o matiz do verde
+   original para azul/roxo.
+
+   Os graus foram calibrados pra o emoji de árvore verde comum (🌳); se o
+   emoji do seu conjunto de fontes render um tom diferente, ajuste o valor
+   de hue-rotate até bater com o azul/roxo desejado. */
+
+.unlocks button.unlocked[data-cost="75"]{
+  border-color: rgba(79,178,224,.3);
+  background: rgba(79,178,224,.06);
+}
+
+.unlocks button.unlocked[data-cost="75"] b{
+  filter: hue-rotate(75deg) saturate(1.15);
+}
+
+.unlocks button.unlocked[data-cost="75"]:hover{
+  box-shadow: 0 0 16px rgba(79,178,224,.28);
+  border-color: rgba(79,178,224,.5);
+}
+
+.unlocks button.unlocked[data-cost="100"]{
+  border-color: rgba(184,166,239,.3);
+  background: rgba(184,166,239,.06);
+}
+
+.unlocks button.unlocked[data-cost="100"] b{
+  filter: hue-rotate(150deg) saturate(1.1);
+}
+
+.unlocks button.unlocked[data-cost="100"]:hover{
+  box-shadow: 0 0 16px rgba(184,166,239,.28);
+  border-color: rgba(184,166,239,.5);
+}
+
+.world-modal{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px
+}
+
+.world-modal[hidden]{display:none}
+
+.world-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(2,8,18,.72);
+  backdrop-filter:blur(6px)
+}
+
+.world-modal-card{
+  position:relative;
+  max-width:340px;
+  width:100%;
+  background:linear-gradient(160deg,rgba(16,41,69,.96),rgba(7,22,40,.97));
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+  padding:28px 24px 24px;
+  text-align:center;
+  animation:world-modal-in .18s ease-out
+}
+
+@keyframes world-modal-in{
+  from{
+    opacity:0;
+    transform:translateY(8px) scale(.97)
   }
+  to{
+    opacity:1;
+    transform:none
+  }
+}
 
-  /* ---------------- WORLD: progresso, marcas e compra ---------------- */
-  const RastroWorld = {
-    engine: null,
-    state: null,
+.world-modal-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:none;
+  border:0;
+  color:#8b9ab6;
+  font-size:14px;
+  cursor:pointer;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  transition:.2s
+}
 
-    init() {
-      const stage = document.getElementById("world-stage-pixi");
-      const modal = document.getElementById("world-modal");
-      if (!stage || !modal) return;
+.world-modal-close:hover{
+  background:rgba(255,255,255,.08);
+  color:#fff
+}
 
-      this.modal = modal;
-      this.emojiEl = document.getElementById("world-modal-emoji");
-      this.titleEl = document.getElementById("world-modal-title");
-      this.descEl = document.getElementById("world-modal-desc");
+.world-modal-emoji{
+  font-size:44px;
+  margin-bottom:10px;
+  filter:drop-shadow(0 0 12px rgba(79,224,179,.35))
+}
 
-      this.obtidoModal = document.getElementById("obtido-modal");
-      this.obtidoIcon = document.getElementById("obtido-icon");
-      this.obtidoName = document.getElementById("obtido-name");
-      this.obtidoMessage = document.getElementById("obtido-message");
+.world-modal-card h3{
+  font:600 17px "Space Grotesk",sans-serif;
+  color:#fff;
+  margin-bottom:8px
+}
 
-      this.state = this._readInitialState();
+.world-modal-card p{
+  font-size:11.5px;
+  line-height:1.6;
+  color:var(--muted)
+}
 
-      if (window.PIXI) {
-        this.engine = new WorldEngine("world-stage-pixi", {
-          onSelectElement: (element) => this.openFor(element),
-        });
-        this.engine.setState(this.state);
-      } else {
-        console.error("[world] PixiJS não carregou — a ilha não será desenhada.");
-        const loading = document.getElementById("world-loading");
-        if (loading) loading.textContent = "Não foi possível carregar seu mundo agora.";
-      }
+.world-modal-card .world-modal-tag{
+  display:inline-block;
+  margin-top:12px;
+  font-size:9px;
+  padding:5px 10px;
+  border-radius:99px;
+  border:1px solid var(--border);
+  color:var(--brand);
+  background:none;
+  font-family:inherit;
+  cursor:pointer;
+  transition:.2s
+}
 
-      // lista lateral: mesmo fluxo do clique na ilha, e acessível por teclado
-      document.querySelectorAll("#world-unlocks button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const element = this._elementByCost(Number(btn.dataset.cost));
-          if (element) this.openFor(element);
-        });
-      });
+.world-modal-card .world-modal-tag:hover:not(:disabled),
+.world-modal-card .world-modal-tag:focus-visible:not(:disabled){
+  color:#fff;
+  border-color:rgba(255,255,255,.3)
+}
 
-      modal.addEventListener("click", (e) => {
-        if (e.target.closest("[data-close]")) this.close();
-      });
-      this.obtidoModal.addEventListener("click", (e) => {
-        if (e.target.closest("[data-close-obtido]")) this.closeObtido();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key !== "Escape") return;
-        if (!modal.hidden) this.close();
-        if (!this.obtidoModal.hidden) this.closeObtido();
-      });
-    },
+.world-modal-card .world-modal-tag:focus-visible{
+  outline:2px solid var(--border);
+  outline-offset:2px
+}
 
-    _readInitialState() {
-      const empty = { points: 0, progress: 0, remaining: 0, elements: [] };
-      const el = document.getElementById("world-state");
-      if (!el) return empty;
-      try {
-        return JSON.parse(el.textContent);
-      } catch (err) {
-        console.error("[world] estado inicial inválido:", err);
-        return empty;
-      }
-    },
+.world-modal-card .world-modal-tag:disabled{
+  opacity:.45;
+  cursor:not-allowed
+}
 
-    _elementByCost(cost) {
-      return (this.state.elements || []).find((el) => el.cost === cost) || null;
-    },
+/* ---------------- Tela "Item obtido!" ---------------- */
 
-    /** O 🪴 tem arte própria; os outros usam o emoji mesmo. */
-    _iconHtml(emoji, label) {
-      if (emoji !== "🪴") return null;
-      return '<img src="/static/img/regador-emoji.png" alt="' + label + '" class="badge-icon-img">';
-    },
+.obtido-card{
+  position:relative;
+  max-width:340px;
+  width:100%;
+  background:linear-gradient(160deg,rgba(16,41,69,.97),rgba(7,22,40,.98));
+  border:1px solid rgba(79,224,179,.25);
+  border-radius:18px;
+  box-shadow:0 0 40px rgba(79,224,179,.12),var(--shadow);
+  padding:30px 26px 26px;
+  text-align:center;
+  animation:world-modal-in .22s ease-out
+}
 
-    /** Aplica um estado novo na tela inteira, sem recarregar a página. */
-    applyState(state) {
-      this.state = state;
+.obtido-check{
+  position:relative;
+  width:64px;
+  height:64px;
+  margin:0 auto 14px;
+  border-radius:50%;
+  border:2px solid var(--brand);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--brand);
+  filter:drop-shadow(0 0 12px rgba(79,224,179,.55))
+}
 
-      const pointsEl = document.getElementById("world-points");
-      if (pointsEl) pointsEl.textContent = state.points + " pts";
+.obtido-spark{
+  position:absolute;
+  font-size:12px;
+  color:var(--sun);
+  animation:obtido-twinkle 1.8s ease-in-out infinite
+}
 
-      const bar = document.getElementById("world-progress-bar");
-      if (bar) bar.style.width = state.progress + "%";
+.spark-a{
+  top:-6px;
+  left:-10px
+}
 
-      const pct = document.getElementById("world-progress-pct");
-      if (pct) pct.textContent = Math.round(state.progress) + "%";
+.spark-b{
+  bottom:-4px;
+  right:-12px;
+  animation-delay:.6s
+}
 
-      const remaining = document.getElementById("world-remaining");
-      if (remaining) remaining.textContent = state.remaining + " pts até a próxima marca";
+@keyframes obtido-twinkle{
+  0%,100%{
+    opacity:.3;
+    transform:scale(.8)
+  }
+  50%{
+    opacity:1;
+    transform:scale(1.15)
+  }
+}
 
-      const balance = document.getElementById("troca-balance-value");
-      if (balance) balance.textContent = state.points + " pts";
+.obtido-card h3{
+  font:600 19px "Space Grotesk",sans-serif;
+  color:#fff;
+  margin-bottom:14px
+}
 
-      const count = document.getElementById("world-found-count");
-      if (count) {
-        const owned = (state.elements || []).filter((el) => el.owned).length;
-        count.textContent = owned + " marcas descobertas.";
-      }
+.obtido-divider{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:var(--brand);
+  font-size:11px;
+  margin-bottom:18px
+}
 
-      document.querySelectorAll("#world-unlocks button").forEach((btn) => {
-        const element = this._elementByCost(Number(btn.dataset.cost));
-        if (!element) return;
-        btn.classList.toggle("unlocked", element.owned);
-        btn.dataset.status = element.owned ? "unlocked" : "locked";
-      });
+.obtido-divider:before,
+.obtido-divider:after{
+  content:"";
+  width:70px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(79,224,179,.4),transparent)
+}
 
-      if (this.engine) this.engine.setState(state);
-    },
+.obtido-icon-box{
+  width:88px;
+  height:88px;
+  margin:0 auto 14px;
+  border-radius:16px;
+  border:1px solid rgba(79,224,179,.3);
+  background:rgba(79,224,179,.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+  filter:drop-shadow(0 0 10px rgba(79,224,179,.3))
+}
 
-    /** Relê o estado no servidor (usado depois de gastar pontos na troca). */
-    async refresh() {
-      try {
-        const res = await fetch("/api/world/state");
-        if (!res.ok) return;
-        this.applyState(await res.json());
-      } catch (err) {
-        /* sem conexão: mantém a tela como está */
-      }
-    },
+.obtido-icon-box img{
+  width:44px;
+  height:44px;
+  object-fit:contain
+}
 
-    openFor(element) {
-      const icon = this._iconHtml(element.emoji, element.label);
-      if (icon) {
-        this.emojiEl.innerHTML = icon;
-      } else {
-        this.emojiEl.textContent = element.emoji;
-      }
-      this.titleEl.textContent = element.label;
+.obtido-name{
+  font:600 16px "Space Grotesk",sans-serif;
+  color:#fff;
+  margin-bottom:2px
+}
 
-      let tagEl = this.modal.querySelector(".world-modal-tag");
-      if (tagEl) tagEl.remove();
-      tagEl = document.createElement("button");
-      tagEl.type = "button";
-      tagEl.className = "world-modal-tag";
-      this.descEl.insertAdjacentElement("afterend", tagEl);
+.obtido-rarity{
+  font-size:10px;
+  color:var(--brand);
+  margin-bottom:18px
+}
 
-      if (element.owned) {
-        this.descEl.textContent =
-          "Você já descobriu essa marca. Ela apareceu porque você deu um passo de verdade no seu Rastro.";
-        tagEl.textContent = "descoberta";
-        tagEl.classList.add("is-unlocked");
-        tagEl.setAttribute("data-close", "");
-      } else {
-        this.descEl.textContent =
-          "Essa marca ainda não faz parte do seu mundo. Você pode guardar seus pontos e obtê-la quando quiser.";
-        const cost = Math.max(0, Number(element.cost) || 0);
-        const balance = this.state.points || 0;
-        if (balance >= cost) {
-          tagEl.textContent = "obter por " + cost + " pts";
-          tagEl.addEventListener("click", () => this.buy(element, tagEl));
-        } else {
-          tagEl.textContent = "faltam " + (cost - balance) + " pts";
-          tagEl.disabled = true;
-          tagEl.setAttribute("data-close", "");
-        }
-      }
+.obtido-quote{
+  border:1px solid rgba(79,224,179,.25);
+  border-radius:12px;
+  padding:12px 16px;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  text-align:left
+}
 
-      this.modal.hidden = false;
-      this.modal.querySelector(".world-modal-close").focus();
-    },
+.obtido-quote span{
+  color:var(--sun);
+  font-size:13px;
+  margin-top:1px
+}
 
-    async buy(element, tagEl) {
-      tagEl.disabled = true;
-      tagEl.textContent = "obtendo...";
-      try {
-        const res = await fetch("/api/world/buy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cost: element.cost }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          tagEl.textContent = "não foi possível obter";
-          tagEl.disabled = false;
-          return;
-        }
-        this.applyState(data);
-        this.showObtido(data.emoji, data.label, data.message);
-      } catch (err) {
-        tagEl.textContent = "erro de conexão";
-        tagEl.disabled = false;
-      }
-    },
+.obtido-quote p{
+  font-size:11.5px;
+  line-height:1.6;
+  color:var(--brand)
+}
 
-    showObtido(emoji, label, message) {
-      const icon = this._iconHtml(emoji, label);
-      if (icon) {
-        this.obtidoIcon.innerHTML = icon;
-      } else {
-        this.obtidoIcon.textContent = emoji;
-      }
-      this.obtidoName.textContent = label;
-      this.obtidoMessage.textContent = message;
+/* ---------------- WORLD: botão "Trocar Pontos" ---------------- */
 
-      this.modal.hidden = true;
-      this.obtidoModal.hidden = false;
-      this.obtidoModal.querySelector(".world-modal-close").focus();
-    },
+.troca-pontos-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:10px;
+  width:100%;
+  border:1px solid rgba(247,189,106,.32);
+  border-radius:11px;
+  padding:12px 16px;
+  cursor:pointer;
+  font:600 11px "Space Grotesk",sans-serif;
+  color:#1c1408;
+  background:linear-gradient(135deg,var(--sun),#e8944a);
+  box-shadow:0 0 22px rgba(247,189,106,.28);
+  transition:.2s;
+  letter-spacing:.3px
+}
 
-    close() {
-      this.modal.hidden = true;
-    },
+.troca-pontos-btn:hover{
+  filter:brightness(1.08);
+  transform:translateY(-1px);
+  box-shadow:0 0 28px rgba(247,189,106,.4)
+}
 
-    closeObtido() {
-      this.obtidoModal.hidden = true;
-    },
-  };
+.troca-pontos-btn:focus-visible{
+  outline:2px solid var(--sun);
+  outline-offset:3px
+}
 
-  /* ---------------- WORLD: Resgatar benefício ---------------- */
-  const RastroTroca = {
-    init() {
-      const btn = document.getElementById("troca-pontos-btn");
-      const modal = document.getElementById("troca-modal");
-      if (!btn || !modal) return;
+.troca-pontos-icon{font-size:14px}
 
-      const balanceEl = document.getElementById("troca-balance-value");
-      const costEl = document.getElementById("troca-selected-cost");
-      const giftEl = document.getElementById("troca-selected-gift");
-      const confirmBtn = document.getElementById("troca-confirm-btn");
-      const feedbackEl = document.getElementById("troca-feedback");
-      const rewardButtons = Array.from(modal.querySelectorAll(".troca-reward"));
+body.troca-open{overflow:hidden}
 
-      let selected = null;
+/* ---------------- WORLD: janela "Troca de Pontos" ---------------- */
 
-      function currentPoints() {
-        const match = (balanceEl.textContent || "").match(/-?\d+/);
-        return match ? parseInt(match[0], 10) : 0;
-      }
+.troca-card{
+  max-width:400px;
+  text-align:left;
+  padding:26px 22px 22px
+}
 
-      function selectReward(rewardBtn) {
-        rewardButtons.forEach((b) => b.classList.remove("selected"));
-        rewardBtn.classList.add("selected");
+.troca-header{
+  text-align:center;
+  margin-bottom:16px
+}
 
-        selected = {
-          id: rewardBtn.dataset.rewardId,
-          cost: Number(rewardBtn.dataset.cost),
-          emoji: rewardBtn.dataset.emoji,
-          label: rewardBtn.dataset.label,
-        };
+.troca-star{
+  display:block;
+  color:var(--sun);
+  font-size:20px;
+  margin-bottom:6px
+}
 
-        costEl.textContent = selected.cost;
-        giftEl.textContent = selected.emoji;
-        feedbackEl.textContent = "";
-        confirmBtn.textContent = "Resgatar benefício";
-        confirmBtn.disabled = currentPoints() < selected.cost;
-      }
+.troca-header h3{
+  font:600 18px "Space Grotesk",sans-serif;
+  color:#fff;
+  margin-bottom:6px
+}
 
-      function resetSelection() {
-        selected = null;
-        rewardButtons.forEach((b) => b.classList.remove("selected"));
-        costEl.textContent = "—";
-        giftEl.textContent = "🎁";
-        confirmBtn.textContent = "Resgatar benefício";
-        confirmBtn.disabled = true;
-        feedbackEl.textContent = "";
-      }
+.troca-header p{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.5
+}
 
-      function open() {
-        resetSelection();
-        modal.hidden = false;
-        document.body.classList.add("troca-open");
-        modal.querySelector(".world-modal-close").focus();
-      }
+.troca-balance-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px
+}
 
-      function close() {
-        modal.hidden = true;
-        document.body.classList.remove("troca-open");
-      }
+.troca-balance{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  background:rgba(247,189,106,.08);
+  border:1px solid rgba(247,189,106,.22);
+  border-radius:11px;
+  padding:11px 13px
+}
 
-      async function confirmExchange() {
-        if (!selected || confirmBtn.disabled) return;
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = "trocando...";
+.troca-balance-icon{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--sun),#e8944a);
+  display:grid;
+  place-items:center;
+  color:#1c1408;
+  font-size:15px;
+  flex:none
+}
 
-        try {
-          const res = await fetch("/api/benefits/redeem", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: selected.id }),
-          });
-          const data = await res.json();
+.troca-balance small{
+  display:block;
+  font-size:8px;
+  color:var(--muted);
+  letter-spacing:.5px
+}
 
-          if (!res.ok || !data.ok) {
-            feedbackEl.textContent = "Não foi possível concluir a troca agora.";
-            confirmBtn.textContent = "Resgatar benefício";
-            confirmBtn.disabled = false;
-            return;
-          }
+.troca-balance strong{
+  font:600 15px "Space Grotesk",sans-serif;
+  color:var(--sun)
+}
 
-          feedbackEl.textContent =
-            "Solicitação registrada: " + data.benefit.emoji + " " + data.benefit.label + ".";
-          confirmBtn.textContent = "Resgatar benefício";
-          // o saldo mudou: atualiza ilha, progresso e saldo de uma vez só
-          await RastroWorld.refresh();
-          confirmBtn.disabled = currentPoints() < selected.cost;
-        } catch (err) {
-          feedbackEl.textContent = "Erro de conexão. Tenta de novo?";
-          confirmBtn.textContent = "Resgatar benefício";
-          confirmBtn.disabled = false;
-        }
-      }
+.troca-hint{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(79,224,179,.06);
+  border:1px solid rgba(79,224,179,.16);
+  border-radius:11px;
+  padding:11px 12px
+}
 
-      btn.addEventListener("click", open);
-      rewardButtons.forEach((rewardBtn) => {
-        rewardBtn.addEventListener("click", () => selectReward(rewardBtn));
-      });
-      confirmBtn.addEventListener("click", confirmExchange);
+.troca-hint span{font-size:16px}
 
-      modal.addEventListener("click", (e) => {
-        if (e.target.closest("[data-close-troca]")) close();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.hidden) close();
-      });
-    },
-  };
+.troca-hint p{
+  font-size:9.5px;
+  line-height:1.4;
+  color:var(--muted)
+}
 
-  window.RastroWorld = RastroWorld;
-  window.RastroTroca = RastroTroca;
-})();
+.troca-hint strong{color:var(--brand)}
+
+.troca-exchange{
+  background:rgba(8,31,52,.6);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:16px;
+  text-align:center
+}
+
+.troca-exchange-title{
+  font-size:9px;
+  letter-spacing:1.6px;
+  color:var(--muted);
+  margin-bottom:12px
+}
+
+.troca-exchange-row{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px
+}
+
+.troca-give,
+.troca-receive{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px
+}
+
+.troca-give small,
+.troca-receive small{
+  font-size:7.5px;
+  color:var(--muted);
+  letter-spacing:.5px
+}
+
+.troca-side-label{
+  font-size:8px;
+  color:#c5d0e6;
+  font-weight:600;
+  letter-spacing:.3px;
+  margin-bottom:4px
+}
+
+.troca-amount{
+  display:flex;
+  align-items:center;
+  gap:5px
+}
+
+.troca-amount-icon{color:var(--sun)}
+
+.troca-amount strong{
+  font:600 20px "Space Grotesk",sans-serif;
+  color:#fff
+}
+
+.troca-min{color:var(--muted)}
+
+.troca-arrow{
+  color:var(--brand);
+  font-size:18px
+}
+
+.troca-gift{
+  width:52px;
+  height:52px;
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(184,166,239,.16),rgba(184,166,239,.06));
+  border:1px solid rgba(184,166,239,.3);
+  display:grid;
+  place-items:center;
+  font-size:24px
+}
+
+.troca-confirm-btn{
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:12px;
+  font:600 12px Inter,sans-serif;
+  color:#eafff8;
+  background:linear-gradient(135deg,#21ad8a,#127b6b);
+  box-shadow:0 0 20px rgba(35,188,151,.2);
+  cursor:pointer;
+  transition:.2s;
+  margin-bottom:8px
+}
+
+.troca-confirm-btn:hover:not(:disabled){
+  filter:brightness(1.1);
+  transform:translateY(-1px)
+}
+
+.troca-confirm-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed
+}
+
+.troca-secure{
+  display:block;
+  text-align:center;
+  color:var(--muted);
+  font-size:8.5px
+}
+
+.troca-rewards-title{
+  text-align:center;
+  font-size:9px;
+  letter-spacing:1.6px;
+  color:var(--muted);
+  margin-bottom:10px
+}
+
+.troca-rewards-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:7px
+}
+
+.troca-reward{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  padding:9px 4px;
+  cursor:pointer;
+  transition:.2s;
+  font-family:inherit
+}
+
+.troca-reward span{font-size:18px}
+
+.troca-reward small{
+  font-size:7px;
+  color:#a9b7cf;
+  line-height:1.2
+}
+
+.troca-reward:hover{
+  border-color:rgba(79,224,179,.35);
+  transform:translateY(-2px)
+}
+
+.troca-reward:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:2px
+}
+
+.troca-reward.selected{
+  border-color:var(--brand);
+  background:rgba(79,224,179,.1);
+  box-shadow:0 0 14px rgba(79,224,179,.2)
+}
+
+.troca-feedback{
+  text-align:center;
+  font-size:10px;
+  color:var(--brand);
+  min-height:14px;
+  margin-top:10px
+}
+
+/* ---------------- WORLD: abas, saldo e Mundo Real ---------------- */
+.world-heading-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.world-balance-btn{
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(247,189,106,.32);
+  border-radius:12px;
+  padding:10px 13px;
+  cursor:pointer;
+  font:600 11px "Space Grotesk",sans-serif;
+  color:#1c1408;
+  background:linear-gradient(135deg,var(--sun),#e8944a);
+  box-shadow:0 0 20px rgba(247,189,106,.2);
+}
+.world-balance-btn span{font-size:14px}
+.world-tabs{
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+  border-bottom:1px solid var(--border);
+}
+.world-tab{
+  padding:9px 13px;
+  color:var(--muted);
+  text-decoration:none;
+  font:600 10px "Space Grotesk",sans-serif;
+  border-bottom:2px solid transparent;
+}
+.world-tab:hover,.world-tab.active{
+  color:var(--brand);
+  border-bottom-color:var(--brand);
+}
+.benefit-note{
+  margin-top:9px;
+  text-align:center;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.4;
+}
+
+.world-real-screen{max-width:1100px}
+.world-real-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 360px;
+  gap:16px;
+}
+.world-real-map{
+  min-height:560px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.world-real-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height:560px;
+  overflow:auto;
+}
+.world-place-card{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(8,31,52,.68);
+}
+.world-place-card.not-interested{display:none}
+.world-place-card h3{
+  margin:0 0 5px;
+  font:600 14px "Space Grotesk",sans-serif;
+}
+.world-place-card p{
+  margin:0 0 10px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.5;
+}
+.world-place-actions{display:flex;gap:6px;flex-wrap:wrap}
+.world-place-actions button{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:7px 9px;
+  background:rgba(255,255,255,.03);
+  color:#dce5f5;
+  cursor:pointer;
+  font:600 9px Inter,sans-serif;
+}
+.world-place-actions button.active{
+  border-color:var(--brand);
+  background:rgba(79,224,179,.1);
+  color:var(--brand);
+}
+.world-real-filter{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px
+}
+.world-real-filter span{
+  border:1px solid rgba(79,224,179,.18);
+  color:var(--brand);
+  border-radius:999px;padding:5px 8px;font-size:8px
+}
+.questionnaire-card{
+  max-width:760px;margin:0 auto;padding:24px;border:1px solid var(--border);
+  border-radius:16px;background:rgba(8,31,52,.72);box-shadow:var(--shadow)
+}
+
+/* ---------------- responsivo ---------------- */
+
+@media(max-width:800px){
+  .world-real-grid{grid-template-columns:1fr}
+  .world-real-map{min-height:360px}
+  .world-real-list{max-height:none}
+}
+
+@media(max-width:520px){
+  .world-stage-pixi{height:450px} /* 320px + 40% */
+  .world-heading-row{display:block}
+  .world-balance-btn{margin-top:12px}
+  .troca-rewards-grid{grid-template-columns:repeat(3,1fr)}
+  .troca-card{padding:22px 16px 18px}
+}
