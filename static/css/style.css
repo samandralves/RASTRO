@@ -1395,6 +1395,13 @@ body{
   margin-bottom:3px
 }
 
+/* Deixa o ícone "1%" branco só na landing (nos outros lugares do app
+   ele continua amarelo, usando var(--sun)) */
+.landing-page .nav-symbol.one{
+  border-color:#fff;
+  color:#fff
+}
+
 .landing-feature small{
   display:block;
   color:var(--muted);
