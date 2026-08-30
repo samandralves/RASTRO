@@ -1962,12 +1962,21 @@ body{
     grid-template-columns:1fr;
     gap:24px;
     padding:28px 20px;
+
+    text-align:center;
   }
 
+  .landing-footer-column{
+    align-items:center;
+  }
 
   .landing-footer-info{
-    align-items:flex-start;
-    text-align:left;
+    align-items:center;
+    text-align:center;
+  }
+
+  .landing-footer-column a{
+    width:auto;
   }
 
 }
