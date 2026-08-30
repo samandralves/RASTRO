@@ -261,6 +261,12 @@
             É voluntário? Entre por aqui
           </a>
 
+
+          <p class="terms-notice">
+            Ao criar conta e realizar o login, você concorda com a
+            <a href="{{ url_for('auth.privacidade') }}" target="_blank" rel="noopener">Política de Privacidade e Termos de Uso</a>.
+          </p>
+
         </form>
 
 
@@ -333,6 +339,12 @@
             É voluntário? Entre por aqui
           </a>
 
+
+          <p class="terms-notice">
+            Ao criar conta e realizar o login, você concorda com a
+            <a href="{{ url_for('auth.privacidade') }}" target="_blank" rel="noopener">Política de Privacidade e Termos de Uso</a>.
+          </p>
+
         </form>
 
       </section>
@@ -365,6 +377,10 @@
         <p>
           Belo Horizonte - MG
         </p>
+
+        <a href="{{ url_for('auth.privacidade') }}">
+          Privacidade e uso de dados
+        </a>
 
       </div>
 
