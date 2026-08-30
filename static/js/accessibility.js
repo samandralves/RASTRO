@@ -112,7 +112,7 @@
   let utterance = null;
 
   function getReadableText() {
-    const main = document.querySelector("main.content") || document.body;
+    const main = document.querySelector("main.content, main.landing-main") || document.body;
     return main.innerText.trim();
   }
 
