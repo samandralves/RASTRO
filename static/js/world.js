@@ -55,7 +55,7 @@
       idle: "shimmer",
     },
     50: {
-      url: "/static/img/bench.png",
+      url: "/static/img/bench_recortado.png",
       baseWidth: 76,
       offset: { x: 46, y: -2 },
       anchor: { x: 0.5, y: 0.78 },
