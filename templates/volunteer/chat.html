@@ -1,8 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Voluntariado{% endblock %}
+
+{% block head %}
+<style>
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #9fb0cc;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color 0.15s ease;
+  }
+  .back-link:hover {
+    color: #4fe0b3;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="screen talk-screen">
   <div class="screen-heading">
+    <a href="{{ url_for('main.home') }}" class="back-link">← Voltar para o início</a>
     <p class="eyebrow">VOLUNTARIADO</p>
     <h1>Conte o que você quer conversar.</h1>
     <p>Vamos ler com cuidado e te encaminhar da forma mais adequada — não precisa ser um texto longo.</p>
@@ -59,7 +79,7 @@
         </div>
         {% endif %}
       </div>
-      <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional. Em emergências, ligue 192 (SAMU) ou vá ao pronto-socorro mais próximo.</p>
+      <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional. Em emergências, ligue 192 (SAMU) ou vá até o pronto-socorro mais próximo.</p>
     </div>
   </div>
 </section>
