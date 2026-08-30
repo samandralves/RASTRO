@@ -164,12 +164,18 @@
    (--brand), vindo da regra genérica acima. As regras abaixo sobrescrevem
    isso pontualmente, sem mexer no comportamento das demais marcas:
      - árvore azul (cost 75): verde -> azul
-     - árvore roxa (cost 100): usa o roxo (--dusk) que já existe na paleta */
+     - árvore roxa (cost 100): verde -> roxo
 
-:root{
-  --tree-blue:#4fb2e0;
-  --tree-blue-soft:rgba(79,178,224,.28);
-}
+   IMPORTANTE: o ícone dentro de <b> é um emoji (ex.: 🌳), não texto nem
+   SVG — por isso a propriedade `color` NÃO muda a cor dele (emoji é uma
+   imagem colorida renderizada pelo sistema, `color` só afeta texto). Quem
+   funciona em cima de emoji é `filter`, que atua sobre o pixel já
+   renderizado. Por isso usamos hue-rotate abaixo, girando o matiz do verde
+   original para azul/roxo.
+
+   Os graus foram calibrados pra o emoji de árvore verde comum (🌳); se o
+   emoji do seu conjunto de fontes render um tom diferente, ajuste o valor
+   de hue-rotate até bater com o azul/roxo desejado. */
 
 .unlocks button.unlocked[data-cost="75"]{
   border-color: rgba(79,178,224,.3);
@@ -177,11 +183,11 @@
 }
 
 .unlocks button.unlocked[data-cost="75"] b{
-  color: var(--tree-blue);
+  filter: hue-rotate(75deg) saturate(1.15);
 }
 
 .unlocks button.unlocked[data-cost="75"]:hover{
-  box-shadow: 0 0 16px var(--tree-blue-soft);
+  box-shadow: 0 0 16px rgba(79,178,224,.28);
   border-color: rgba(79,178,224,.5);
 }
 
@@ -191,7 +197,7 @@
 }
 
 .unlocks button.unlocked[data-cost="100"] b{
-  color: var(--dusk);
+  filter: hue-rotate(150deg) saturate(1.1);
 }
 
 .unlocks button.unlocked[data-cost="100"]:hover{
