@@ -28,9 +28,19 @@
     outline-offset: 2px;
   }
 
-  .screen-heading { margin-bottom: 24px; }
+  /* wrapper único garantindo que o título e os cards comecem
+     exatamente na mesma margem esquerda */
+  .update-page {
+    max-width: 640px;
+    margin: 0;
+    padding: 0;
+  }
+  .update-page .screen-heading {
+    margin: 0 0 24px;
+    padding: 0;
+  }
 
-  .update-layout { display: flex; flex-direction: column; gap: 18px; max-width: 640px; }
+  .update-layout { display: flex; flex-direction: column; gap: 18px; }
 
   .update-card {
     background: #0b1830;
@@ -144,44 +154,48 @@
 
 {% block content %}
 <section class="screen talk-screen">
-  <div class="screen-heading">
-    <a href="{{ url_for('main.talk') }}" class="back-link">← Voltar para o Talk</a>
-    <p class="eyebrow">ATUALIZAR INFORMAÇÕES</p>
-    <h1>Nos ajude a manter o Rastro do seu jeito.</h1>
-    <p>Tudo aqui é anônimo nas estatísticas — só usamos pra melhorar o programa.</p>
-  </div>
+  <div class="update-page">
 
-  <form method="post" action="{{ url_for('main.atualizar_tudo') }}" class="update-layout">
+    <div class="screen-heading">
+      <a href="{{ url_for('main.talk') }}" class="back-link">← Voltar para o Talk</a>
+      <p class="eyebrow">ATUALIZAR INFORMAÇÕES</p>
+      <h1>Nos ajude a manter o Rastro do seu jeito.</h1>
+      <p>Tudo aqui é anônimo nas estatísticas — só usamos pra melhorar o programa.</p>
+    </div>
 
-    <div class="update-card">
-      <p class="eyebrow">O 1% TEM AJUDADO?</p>
-      <div class="radio-pills">
-        <label class="radio-pill"><input type="radio" name="helped" value="sim" required> Sim, bastante</label>
-        <label class="radio-pill"><input type="radio" name="helped" value="parcialmente"> Parcialmente</label>
-        <label class="radio-pill"><input type="radio" name="helped" value="nao"> Ainda não</label>
+    <form method="post" action="{{ url_for('main.atualizar_tudo') }}" class="update-layout">
+
+      <div class="update-card">
+        <p class="eyebrow">O 1% TEM AJUDADO?</p>
+        <div class="radio-pills">
+          <label class="radio-pill"><input type="radio" name="helped" value="sim" required> Sim, bastante</label>
+          <label class="radio-pill"><input type="radio" name="helped" value="parcialmente"> Parcialmente</label>
+          <label class="radio-pill"><input type="radio" name="helped" value="nao"> Ainda não</label>
+        </div>
+        <textarea class="update-textarea" name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
       </div>
-      <textarea class="update-textarea" name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
-    </div>
 
-    <div class="update-card">
-      <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
-      <select class="update-select" name="context" required>
-        <option value="" disabled selected>Escolha um contexto</option>
-        {% for c in satisfaction_contexts %}
-        <option value="{{ c }}">{{ c|title }}</option>
-        {% endfor %}
-      </select>
-      <textarea class="update-textarea" name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)"></textarea>
-    </div>
+      <div class="update-card">
+        <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
+        <select class="update-select" name="context" required>
+          <option value="" disabled selected>Escolha um contexto</option>
+          {% for c in satisfaction_contexts %}
+          <option value="{{ c }}">{{ c|title }}</option>
+          {% endfor %}
+        </select>
+        <textarea class="update-textarea" name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)"></textarea>
+      </div>
 
-    <div class="update-card">
-      <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
-      <p class="card-intro">Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
-      <textarea class="update-textarea" name="text" rows="4" placeholder="Escreva livremente..." required></textarea>
-    </div>
+      <div class="update-card">
+        <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
+        <p class="card-intro">Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
+        <textarea class="update-textarea" name="text" rows="4" placeholder="Escreva livremente..." required></textarea>
+      </div>
 
-    <button type="submit" class="update-submit">Enviar tudo</button>
+      <button type="submit" class="update-submit">Enviar tudo</button>
 
-  </form>
+    </form>
+
+  </div>
 </section>
 {% endblock %}
