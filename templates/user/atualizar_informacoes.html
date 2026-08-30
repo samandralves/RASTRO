@@ -3,133 +3,18 @@
 
 {% block head %}
 <style>
-  .update-layout { display: flex; flex-direction: column; gap: 18px; max-width: 640px; }
-
-  .update-card {
-    background: #0b1830;
-    border: 0.5px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 24px;
-  }
-  .update-card .eyebrow {
-    letter-spacing: 1px;
-    margin: 0 0 16px;
-  }
-  .update-card .card-intro {
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 1.6;
-    margin: 0 0 16px;
-  }
-
-  /* rádio em formato de pílula, sem o bullet nativo do navegador */
-  .radio-pills {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .radio-pill {
-    display: flex;
+  .back-link {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #c7d3e8;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 0.5px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.02);
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-  .radio-pill:hover { border-color: rgba(79, 224, 179, 0.4); }
-  .radio-pill input[type="radio"] {
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-    flex-shrink: 0;
-    position: relative;
-    margin: 0;
-  }
-  .radio-pill input[type="radio"]:checked {
-    border-color: var(--brand);
-  }
-  .radio-pill input[type="radio"]:checked::after {
-    content: "";
-    position: absolute;
-    inset: 3px;
-    border-radius: 50%;
-    background: var(--brand);
-  }
-  .radio-pill:has(input:checked) {
-    border-color: rgba(79, 224, 179, 0.5);
-    background: rgba(79, 224, 179, 0.06);
-  }
-
-  .update-select,
-  .update-textarea {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #e9f2ff;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    padding: 12px 14px;
-    box-sizing: border-box;
-    transition: border-color 0.15s ease;
-  }
-  .update-select:focus,
-  .update-textarea:focus {
-    outline: none;
-    border-color: var(--brand);
-  }
-  .update-textarea {
-    resize: vertical;
-    line-height: 1.6;
-    margin-bottom: 16px;
-  }
-  .update-select {
+    gap: 6px;
+    font-size: 12px;
+    color: #9fb0cc;
+    text-decoration: none;
     margin-bottom: 12px;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239fb0cc' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
+    transition: color 0.15s ease;
   }
-  .update-select option { background: #0b1830; color: #e9f2ff; }
-
-  .update-submit {
-    background: var(--brand);
-    color: #04342c;
-    font-size: 13px;
-    font-weight: 500;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    cursor: pointer;
-    transition: opacity 0.15s ease;
-  }
-  .update-submit:hover { opacity: 0.9; }
-  .update-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .field-error {
-    display: none;
-    color: #ff8a8a;
-    font-size: 12.5px;
-    margin: -10px 0 14px;
-  }
-  .field-error.show { display: block; }
-  .update-card.has-error .update-textarea,
-  .update-card.has-error .update-select {
-    border-color: #ff8a8a;
-  }
-
-  .update-submit-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .back-link:hover {
+    color: #4fe0b3;
   }
 </style>
 {% endblock %}
@@ -137,115 +22,23 @@
 {% block content %}
 <section class="screen talk-screen">
   <div class="screen-heading">
+    <a href="{{ url_for('main.home') }}" class="back-link">← Voltar para o início</a>
     <p class="eyebrow">ATUALIZAR INFORMAÇÕES</p>
     <h1>Nos ajude a manter o Rastro do seu jeito.</h1>
     <p>Tudo aqui é anônimo nas estatísticas — só usamos pra melhorar o programa.</p>
   </div>
 
-  <form method="post" action="{{ url_for('main.atualizar_tudo') }}" class="update-layout" id="update-form" novalidate>
+  <div class="talk-layout">
+    <div class="talk-main" style="display:flex;flex-direction:column;gap:24px;">
 
-    <div class="update-card" data-card="helped">
-      <p class="eyebrow">O 1% TEM AJUDADO?</p>
-      <div class="radio-pills">
-        <label class="radio-pill"><input type="radio" name="helped" value="sim" required> Sim, bastante</label>
-        <label class="radio-pill"><input type="radio" name="helped" value="parcialmente"> Parcialmente</label>
-        <label class="radio-pill"><input type="radio" name="helped" value="nao"> Ainda não</label>
-      </div>
-      <p class="field-error" data-error-for="helped">Escolha uma das opções acima.</p>
-      <textarea class="update-textarea" name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
-      <p class="field-error" data-error-for="comment">Escreva um comentário de verdade, ou deixe em branco.</p>
-    </div>
+      <form method="post" action="{{ url_for('main.atualizar_feedback') }}" class="side-card">
+        <p class="eyebrow">O 1% TEM AJUDADO?</p>
+        <label><input type="radio" name="helped" value="sim" required> Sim, bastante</label><br>
+        <label><input type="radio" name="helped" value="parcialmente"> Parcialmente</label><br>
+        <label><input type="radio" name="helped" value="nao"> Ainda não</label>
+        <textarea name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)" style="width:100%;margin-top:10px;"></textarea>
+        <button type="submit" class="send-btn" style="margin-top:10px;">Enviar feedback</button>
+      </form>
 
-    <div class="update-card" data-card="context">
-      <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
-      <select class="update-select" name="context" required>
-        <option value="" disabled selected>Escolha um contexto</option>
-        {% for c in satisfaction_contexts %}
-        <option value="{{ c }}">{{ c|title }}</option>
-        {% endfor %}
-      </select>
-      <p class="field-error" data-error-for="context">Escolha um contexto.</p>
-      <textarea class="update-textarea" name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)"></textarea>
-      <p class="field-error" data-error-for="reason_text">Escreva um texto de verdade, ou deixe em branco.</p>
-    </div>
-
-    <div class="update-card" data-card="text">
-      <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
-      <p class="card-intro">Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
-      <textarea class="update-textarea" name="text" rows="4" placeholder="Escreva livremente..." required></textarea>
-      <p class="field-error" data-error-for="text">Escreva um pouco sobre o que está vivendo — não pode ficar em branco.</p>
-    </div>
-
-    <div class="update-submit-row">
-      <button type="submit" class="update-submit">Enviar todas as informações</button>
-    </div>
-
-  </form>
-</section>
-
-<script>
-(function () {
-  var form = document.getElementById("update-form");
-  if (!form) return;
-
-  function isMeaningful(value, minLen) {
-    minLen = minLen || 3;
-    var text = (value || "").trim();
-    if (text.length < minLen) return false;
-    var letters = text.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || [];
-    if (letters.length < minLen) return false;
-    var distinct = new Set(letters.map(function (c) { return c.toLowerCase(); }));
-    if (distinct.size < 2) return false;
-    return true;
-  }
-
-  function showError(name, show) {
-    var el = form.querySelector('[data-error-for="' + name + '"]');
-    var card = el ? el.closest(".update-card") : null;
-    if (el) el.classList.toggle("show", !!show);
-    if (card) card.classList.toggle("has-error", !!show);
-  }
-
-  function validate() {
-    var ok = true;
-
-    var helped = form.querySelector('input[name="helped"]:checked');
-    if (!helped) { showError("helped", true); ok = false; }
-    else { showError("helped", false); }
-
-    var comment = form.querySelector('textarea[name="comment"]').value;
-    if (comment.trim() && !isMeaningful(comment)) { showError("comment", true); ok = false; }
-    else { showError("comment", false); }
-
-    var context = form.querySelector('select[name="context"]').value;
-    if (!context) { showError("context", true); ok = false; }
-    else { showError("context", false); }
-
-    var reasonText = form.querySelector('textarea[name="reason_text"]').value;
-    if (reasonText.trim() && !isMeaningful(reasonText)) { showError("reason_text", true); ok = false; }
-    else { showError("reason_text", false); }
-
-    var objectiveText = form.querySelector('textarea[name="text"]').value;
-    if (!isMeaningful(objectiveText)) { showError("text", true); ok = false; }
-    else { showError("text", false); }
-
-    return ok;
-  }
-
-  form.addEventListener("submit", function (event) {
-    if (!validate()) {
-      event.preventDefault();
-    }
-  });
-
-  // limpa o erro de um campo assim que a pessoa corrige
-  form.querySelectorAll("textarea, select").forEach(function (field) {
-    field.addEventListener("input", validate);
-    field.addEventListener("change", validate);
-  });
-  form.querySelectorAll('input[type="radio"]').forEach(function (field) {
-    field.addEventListener("change", validate);
-  });
-})();
-</script>
-{% endblock %}
+      <form method="post" action="{{ url_for('main.atualizar_satisfacao') }}" class="side-card">
+        <p class="eyebrow">O QUE TEM TE
