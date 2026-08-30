@@ -31,6 +31,7 @@ from data import (
 from helpers import (
     completed_count_for,
     current_user,
+    is_meaningful_text,
     login_required,
     owned_costs_for,
     unlock,
@@ -404,45 +405,50 @@ def atualizar_informacoes():
     )
 
 
-@bp.post("/atualizar/feedback")
+@bp.post("/atualizar/tudo")
 @login_required
-def atualizar_feedback():
+def atualizar_tudo():
+    """Processa as 3 perguntas de 'Atualizar informações' em um único envio.
+
+    Nada é gravado se qualquer campo obrigatório estiver vazio, só com
+    espaços, ou sem texto de verdade (ex.: "...", "aaaa") — a validação é
+    repetida aqui porque o formulário também valida no navegador, mas o
+    servidor nunca confia só nisso.
+    """
+    user = current_user()
+
     helped = request.form.get("helped")
     comment = (request.form.get("comment") or "").strip()
-    if helped in ("sim", "parcialmente", "nao"):
-        db.session.add(ProgramFeedback(helped=helped, comment=comment[:500] or None))
-        db.session.commit()
-        flash("Obrigado pelo feedback!")
-    return redirect(url_for("main.atualizar_informacoes"))
-
-
-@bp.post("/atualizar/satisfacao")
-@login_required
-def atualizar_satisfacao():
     context = request.form.get("context")
     reason_text = (request.form.get("reason_text") or "").strip()
-    if context in SATISFACTION_CONTEXTS:
-        db.session.add(SatisfactionEntry(
-            context=context,
-            reason_text=reason_text[:500] or None,
-            origin="atualizar_info",
-        ))
-        db.session.commit()
-        flash("Obrigado por compartilhar, de forma anônima.")
-    return redirect(url_for("main.atualizar_informacoes"))
+    objective_text = (request.form.get("text") or "").strip()
 
+    errors = []
+    if helped not in ("sim", "parcialmente", "nao"):
+        errors.append("Escolha se o 1% tem ajudado.")
+    if context not in SATISFACTION_CONTEXTS:
+        errors.append("Escolha um contexto em \"O que tem te incomodado?\".")
+    if not is_meaningful_text(objective_text, min_len=3):
+        errors.append("Conte, com texto de verdade, o que está vivendo agora.")
+    if comment and not is_meaningful_text(comment):
+        errors.append("O comentário do feedback não parece ter texto de verdade — apague ou complete.")
+    if reason_text and not is_meaningful_text(reason_text):
+        errors.append("O campo do que te incomoda não parece ter texto de verdade — apague ou complete.")
 
-@bp.post("/atualizar/objetivo")
-@login_required
-def atualizar_objetivo():
-    user = current_user()
-    text = (request.form.get("text") or "").strip()
-    if not text:
-        flash("Escreva um pouco sobre o que está vivendo agora.")
+    if errors:
+        for message in errors:
+            flash(message)
         return redirect(url_for("main.atualizar_informacoes"))
 
-    objective = detect_objective(text)
-    barrier = detect_barrier(text)
+    db.session.add(ProgramFeedback(helped=helped, comment=comment[:500] or None))
+    db.session.add(SatisfactionEntry(
+        context=context,
+        reason_text=reason_text[:500] or None,
+        origin="atualizar_info",
+    ))
+
+    objective = detect_objective(objective_text)
+    barrier = detect_barrier(objective_text)
     user.current_objective = objective
     user.current_barrier = barrier
     user.pattern = PATTERNS.get(barrier, PATTERNS["não sei por onde começar"])
@@ -457,5 +463,5 @@ def atualizar_objetivo():
     goal_engine.request_new_draft(user, cycle_number=next_cycle_number, payload=payload, source=source)
     db.session.commit()
 
-    flash("Objetivo atualizado! Um novo bloco de metas foi gerado e está em aprovação.")
+    flash("Informações atualizadas! Um novo bloco de metas foi gerado e está em aprovação.")
     return redirect(url_for("main.onepct"))
