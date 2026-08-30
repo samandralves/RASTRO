@@ -1333,7 +1333,7 @@ body{
 }
 
 .landing-header img{
-  width:80px;
+  width:120px;
   object-fit:contain;
   filter:drop-shadow(0 0 12px rgba(79,224,179,.2))
 }
