@@ -6,6 +6,7 @@
   .talk-hero { display: flex; flex-direction: column; gap: 28px; }
 
   .talk-hero-heading h1 {
+    font-family: "Space Grotesk", sans-serif;
     font-size: 32px;
     font-weight: 500;
     line-height: 1.25;
@@ -13,7 +14,7 @@
     max-width: 560px;
     margin: 8px 0 12px;
   }
-  .talk-hero-heading p {
+  .talk-hero-heading p:not(.eyebrow) {
     font-size: 15px;
     color: var(--muted);
     max-width: 460px;
@@ -207,7 +208,7 @@
 
   <div class="talk-safety-banner">
     <div class="msg"><span class="icon">🔒</span>Todas as conversas são confidenciais e protegidas.</div>
-    <a href="#">Saiba mais</a>
+    <a href="{{ url_for('auth.privacidade') }}">Saiba mais →</a>
   </div>
 
   <p class="disclaimer">O Rastro não faz diagnóstico nem substitui atendimento profissional.</p>
