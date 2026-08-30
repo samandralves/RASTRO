@@ -24,7 +24,7 @@
 .a11y-toggle{
   position:fixed;
   right:20px;
-  bottom:84px;
+  bottom:20px;
   z-index:9999;
   width:52px;
   height:52px;
@@ -66,7 +66,7 @@
 .a11y-panel{
   position:fixed;
   right:20px;
-  bottom:148px;
+  bottom:84px;
   z-index:9999;
   width:300px;
   max-width:calc(100vw - 40px);
@@ -205,15 +205,30 @@ html[data-a11y-spacing="on"] span{
 @media (max-width:850px){
   .a11y-toggle{
     right:14px;
-    bottom:148px; /* acima do botão de apoio em crise, que agora fica no canto */
+    bottom:84px; /* 8px (offset da bottom-nav) + 64px (altura) + 12px (respiro) */
   }
   .a11y-panel{
     right:14px;
-    bottom:212px;
+    bottom:148px; /* acima do botão, que agora está mais alto */
   }
 }
 
 @media (max-width:480px){
-  .a11y-panel{right:10px;left:10px;width:auto;bottom:212px}
-  .a11y-toggle{right:14px;bottom:148px}
+  .a11y-panel{right:10px;left:10px;width:auto;bottom:148px}
+  .a11y-toggle{right:14px;bottom:84px}
+}
+
+/* Em páginas que também têm o botão "Preciso de apoio" (empilhado no mesmo
+   canto, abaixo deste), o botão e o painel de acessibilidade sobem para
+   não ficar em cima dele. */
+body.has-crisis-widget .a11y-toggle{bottom:84px}
+body.has-crisis-widget .a11y-panel{bottom:148px}
+
+@media (max-width:850px){
+  body.has-crisis-widget .a11y-toggle{bottom:148px}
+  body.has-crisis-widget .a11y-panel{bottom:212px}
+}
+@media (max-width:480px){
+  body.has-crisis-widget .a11y-panel{bottom:212px}
+  body.has-crisis-widget .a11y-toggle{bottom:148px}
 }
