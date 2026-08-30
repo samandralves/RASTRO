@@ -69,25 +69,11 @@
   <button id="a11y-toggle" class="a11y-toggle" type="button"
           aria-haspopup="true" aria-expanded="false" aria-controls="a11y-panel"
           aria-label="Abrir menu de acessibilidade">
-    <img src="{{ url_for('static', filename='img/accessibility.png') }}" alt="" class="a11y-toggle-icon">
+    <img src="{{ url_for('static', filename='img/acessibilidade.png') }}" alt="" class="a11y-toggle-icon">
   </button>
 
   <div id="a11y-panel" class="a11y-panel" role="dialog" aria-label="Opções de acessibilidade">
     <h2>Acessibilidade</h2>
-
-    <div class="a11y-row">
-      <span>Tamanho da fonte</span>
-      <div class="a11y-btn-group">
-        <button id="a11y-font-dec" class="a11y-btn" type="button" aria-label="Diminuir fonte">A-</button>
-        <button id="a11y-font-inc" class="a11y-btn" type="button" aria-label="Aumentar fonte">A+</button>
-      </div>
-    </div>
-
-    <div class="a11y-row">
-      <span>Alto contraste</span>
-      <button class="a11y-toggle-switch" type="button" data-a11y-switch="contrast"
-              aria-pressed="false" aria-label="Ativar alto contraste"></button>
-    </div>
 
     <div class="a11y-row">
       <span>Fonte para dislexia</span>
