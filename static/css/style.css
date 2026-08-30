@@ -1940,6 +1940,64 @@ body{
 
 .day-group .goal-list{margin-top:8px}
 
+.archive-section{
+  margin-top:22px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  background:rgba(6,27,48,.5)
+}
+
+.archive-section summary{
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font:600 11px Space Grotesk,sans-serif;
+  color:var(--muted);
+  list-style:none
+}
+
+.archive-section summary::-webkit-details-marker{display:none}
+
+.archive-section summary::before{
+  content:"▸";
+  color:var(--muted);
+  transition:.2s
+}
+
+.archive-section[open] summary::before{transform:rotate(90deg)}
+
+.archive-section[open] summary{color:var(--sun)}
+
+.archive-count{
+  margin-left:auto;
+  font:600 9px Space Grotesk,sans-serif;
+  color:var(--muted);
+  background:rgba(255,255,255,.06);
+  padding:2px 9px;
+  border-radius:20px
+}
+
+.archive-list{
+  margin-top:14px;
+  max-height:420px;
+  overflow-y:auto;
+  padding-right:4px
+}
+
+.goal.archived{opacity:.55}
+
+.goal.archived .goal-content strong{
+  text-decoration:line-through;
+  color:#7f8ca5
+}
+
+.goal.archived .goal-check{
+  background:var(--sun);
+  border-color:var(--sun)
+}
+
 .talk-menu-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
