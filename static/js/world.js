@@ -57,7 +57,7 @@
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: -4, y: -12 }, // encostando na borda do lago (era x: 8, y: -4)
+      offset: { x: 17, y: -30 }, // ajuste fino a partir da 2ª referência (era x: 12, y: -35)
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
