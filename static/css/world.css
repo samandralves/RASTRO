@@ -159,6 +159,46 @@
   box-shadow:0 0 16px rgba(79,224,179,.18)
 }
 
+/* ---------------- WORLD: cor própria por marca na lista lateral ----------------
+   Por padrão, toda marca desbloqueada (.unlocks button.unlocked) fica verde
+   (--brand), vindo da regra genérica acima. As regras abaixo sobrescrevem
+   isso pontualmente, sem mexer no comportamento das demais marcas:
+     - árvore azul (cost 75): verde -> azul
+     - árvore roxa (cost 100): usa o roxo (--dusk) que já existe na paleta */
+
+:root{
+  --tree-blue:#4fb2e0;
+  --tree-blue-soft:rgba(79,178,224,.28);
+}
+
+.unlocks button.unlocked[data-cost="75"]{
+  border-color: rgba(79,178,224,.3);
+  background: rgba(79,178,224,.06);
+}
+
+.unlocks button.unlocked[data-cost="75"] b{
+  color: var(--tree-blue);
+}
+
+.unlocks button.unlocked[data-cost="75"]:hover{
+  box-shadow: 0 0 16px var(--tree-blue-soft);
+  border-color: rgba(79,178,224,.5);
+}
+
+.unlocks button.unlocked[data-cost="100"]{
+  border-color: rgba(184,166,239,.3);
+  background: rgba(184,166,239,.06);
+}
+
+.unlocks button.unlocked[data-cost="100"] b{
+  color: var(--dusk);
+}
+
+.unlocks button.unlocked[data-cost="100"]:hover{
+  box-shadow: 0 0 16px rgba(184,166,239,.28);
+  border-color: rgba(184,166,239,.5);
+}
+
 .world-modal{
   position:fixed;
   inset:0;
