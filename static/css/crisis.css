@@ -5,9 +5,9 @@
    ========================================================================== */
 
 :root{
-  --crisis:#f7bd6a;
-  --crisis2:#d99f3e;
-  --crisis-bg:rgba(247,189,106,.12);
+  --crisis:#4fe0b3;
+  --crisis2:#39b98f;
+  --crisis-bg:rgba(79,224,179,.12);
 }
 
 /* ---------- Botão flutuante ---------- */
@@ -19,9 +19,9 @@
   height:52px;
   padding:0 18px 0 14px;
   border-radius:999px;
-  border:1px solid rgba(247,189,106,.4);
+  border:2px solid var(--crisis2);
   background:var(--crisis);
-  color:#1a0d05;
+  color:#04342c;
   display:flex;
   align-items:center;
   gap:8px;
@@ -159,8 +159,8 @@
   width:120px;
   height:120px;
   border-radius:50%;
-  border:1.5px solid rgba(247,189,106,.4);
-  background:radial-gradient(circle,rgba(247,189,106,.28),rgba(247,189,106,.05) 70%);
+  border:1.5px solid rgba(79,224,179,.4);
+  background:radial-gradient(circle,rgba(79,224,179,.28),rgba(79,224,179,.05) 70%);
   display:flex;
   align-items:center;
   justify-content:center;
