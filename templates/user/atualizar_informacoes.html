@@ -112,6 +112,25 @@
     transition: opacity 0.15s ease;
   }
   .update-submit:hover { opacity: 0.9; }
+  .update-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .field-error {
+    display: none;
+    color: #ff8a8a;
+    font-size: 12.5px;
+    margin: -10px 0 14px;
+  }
+  .field-error.show { display: block; }
+  .update-card.has-error .update-textarea,
+  .update-card.has-error .update-select {
+    border-color: #ff8a8a;
+  }
+
+  .update-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 </style>
 {% endblock %}
 
@@ -123,20 +142,21 @@
     <p>Tudo aqui é anônimo nas estatísticas — só usamos pra melhorar o programa.</p>
   </div>
 
-  <div class="update-layout">
+  <form method="post" action="{{ url_for('main.atualizar_tudo') }}" class="update-layout" id="update-form" novalidate>
 
-    <form method="post" action="{{ url_for('main.atualizar_feedback') }}" class="update-card">
+    <div class="update-card" data-card="helped">
       <p class="eyebrow">O 1% TEM AJUDADO?</p>
       <div class="radio-pills">
         <label class="radio-pill"><input type="radio" name="helped" value="sim" required> Sim, bastante</label>
         <label class="radio-pill"><input type="radio" name="helped" value="parcialmente"> Parcialmente</label>
         <label class="radio-pill"><input type="radio" name="helped" value="nao"> Ainda não</label>
       </div>
+      <p class="field-error" data-error-for="helped">Escolha uma das opções acima.</p>
       <textarea class="update-textarea" name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
-      <button type="submit" class="update-submit">Enviar feedback</button>
-    </form>
+      <p class="field-error" data-error-for="comment">Escreva um comentário de verdade, ou deixe em branco.</p>
+    </div>
 
-    <form method="post" action="{{ url_for('main.atualizar_satisfacao') }}" class="update-card">
+    <div class="update-card" data-card="context">
       <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
       <select class="update-select" name="context" required>
         <option value="" disabled selected>Escolha um contexto</option>
@@ -144,17 +164,88 @@
         <option value="{{ c }}">{{ c|title }}</option>
         {% endfor %}
       </select>
+      <p class="field-error" data-error-for="context">Escolha um contexto.</p>
       <textarea class="update-textarea" name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)"></textarea>
-      <button type="submit" class="update-submit">Enviar, de forma anônima</button>
-    </form>
+      <p class="field-error" data-error-for="reason_text">Escreva um texto de verdade, ou deixe em branco.</p>
+    </div>
 
-    <form method="post" action="{{ url_for('main.atualizar_objetivo') }}" class="update-card">
+    <div class="update-card" data-card="text">
       <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
       <p class="card-intro">Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
       <textarea class="update-textarea" name="text" rows="4" placeholder="Escreva livremente..." required></textarea>
-      <button type="submit" class="update-submit">Atualizar objetivo</button>
-    </form>
+      <p class="field-error" data-error-for="text">Escreva um pouco sobre o que está vivendo — não pode ficar em branco.</p>
+    </div>
 
-  </div>
+    <div class="update-submit-row">
+      <button type="submit" class="update-submit">Enviar todas as informações</button>
+    </div>
+
+  </form>
 </section>
+
+<script>
+(function () {
+  var form = document.getElementById("update-form");
+  if (!form) return;
+
+  function isMeaningful(value, minLen) {
+    minLen = minLen || 3;
+    var text = (value || "").trim();
+    if (text.length < minLen) return false;
+    var letters = text.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || [];
+    if (letters.length < minLen) return false;
+    var distinct = new Set(letters.map(function (c) { return c.toLowerCase(); }));
+    if (distinct.size < 2) return false;
+    return true;
+  }
+
+  function showError(name, show) {
+    var el = form.querySelector('[data-error-for="' + name + '"]');
+    var card = el ? el.closest(".update-card") : null;
+    if (el) el.classList.toggle("show", !!show);
+    if (card) card.classList.toggle("has-error", !!show);
+  }
+
+  function validate() {
+    var ok = true;
+
+    var helped = form.querySelector('input[name="helped"]:checked');
+    if (!helped) { showError("helped", true); ok = false; }
+    else { showError("helped", false); }
+
+    var comment = form.querySelector('textarea[name="comment"]').value;
+    if (comment.trim() && !isMeaningful(comment)) { showError("comment", true); ok = false; }
+    else { showError("comment", false); }
+
+    var context = form.querySelector('select[name="context"]').value;
+    if (!context) { showError("context", true); ok = false; }
+    else { showError("context", false); }
+
+    var reasonText = form.querySelector('textarea[name="reason_text"]').value;
+    if (reasonText.trim() && !isMeaningful(reasonText)) { showError("reason_text", true); ok = false; }
+    else { showError("reason_text", false); }
+
+    var objectiveText = form.querySelector('textarea[name="text"]').value;
+    if (!isMeaningful(objectiveText)) { showError("text", true); ok = false; }
+    else { showError("text", false); }
+
+    return ok;
+  }
+
+  form.addEventListener("submit", function (event) {
+    if (!validate()) {
+      event.preventDefault();
+    }
+  });
+
+  // limpa o erro de um campo assim que a pessoa corrige
+  form.querySelectorAll("textarea, select").forEach(function (field) {
+    field.addEventListener("input", validate);
+    field.addEventListener("change", validate);
+  });
+  form.querySelectorAll('input[type="radio"]').forEach(function (field) {
+    field.addEventListener("change", validate);
+  });
+})();
+</script>
 {% endblock %}
