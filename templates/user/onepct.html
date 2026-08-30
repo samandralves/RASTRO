@@ -22,6 +22,16 @@
   </div>
 
   {% elif state == 'ativo' %}
+  {# ---- coleta as metas já concluídas pra arquivá-las fora do fluxo principal ---- #}
+  {% set archived_daily = [] %}
+  {% for w in cycle.weekly_goals %}
+    {% for d in w.daily_goals if d.done %}
+      {% set _ = archived_daily.append(d) %}
+    {% endfor %}
+  {% endfor %}
+  {% set archived_weekly = cycle.weekly_goals|selectattr('done')|list %}
+  {% set archive_count = archived_daily|length + archived_weekly|length + (1 if cycle.monthly_done else 0) %}
+
   <div class="onepct-layout">
     <div class="onepct-main">
       <div class="onepct-banner">
@@ -30,48 +40,97 @@
         <span class="spark">✦</span>
       </div>
 
-      <div class="goal monthly-goal {{ 'done' if cycle.monthly_done }}" data-kind="monthly" data-id="{{ cycle.id }}" tabindex="0">
+      {% if not cycle.monthly_done %}
+      <div class="goal monthly-goal" data-kind="monthly" data-id="{{ cycle.id }}" tabindex="0">
         <span class="goal-emoji">🌕</span>
         <div class="goal-content"><strong>Meta do mês</strong><small>{{ cycle.monthly_text }}</small></div>
         <span class="goal-points">+{{ points.monthly }} pts</span>
-        <span class="goal-check">{{ '✓' if cycle.monthly_done else '' }}</span>
+        <span class="goal-check"></span>
       </div>
+      {% endif %}
 
       {% for weekly in cycle.weekly_goals %}
+      {% set week_pending_daily = weekly.daily_goals|rejectattr('done')|list %}
+      {% set show_card = weekly.unlocked and not weekly.done %}
+      {% set show_days = weekly.daily_available and week_pending_daily %}
+      {% if show_card or show_days or not weekly.unlocked %}
       <div class="weekly-block {{ 'locked' if not weekly.unlocked }}">
-        {% if weekly.unlocked %}
-        <div class="goal weekly-goal {{ 'done' if weekly.done }}" data-kind="weekly" data-id="{{ weekly.id }}" tabindex="0">
+        {% if show_card %}
+        <div class="goal weekly-goal" data-kind="weekly" data-id="{{ weekly.id }}" tabindex="0">
           <span class="goal-emoji">🪐</span>
           <div class="goal-content"><strong>Semana {{ weekly.order }}</strong><small>{{ weekly.text }}</small></div>
           <span class="goal-points">+{{ points.weekly }} pts</span>
-          <span class="goal-check">{{ '✓' if weekly.done else '' }}</span>
+          <span class="goal-check"></span>
         </div>
-        {% else %}
+        {% elif not weekly.unlocked %}
         <div class="goal weekly-goal locked-card">
           <span class="goal-emoji">🔒</span>
           <div class="goal-content"><strong>Semana {{ weekly.order }}</strong><small>Desbloqueia ao concluir mais metas</small></div>
         </div>
         {% endif %}
 
-        {% if weekly.daily_available %}
+        {% if show_days %}
+        {% set ns = namespace(opened=false) %}
         {% for day in range(1, 8) %}
-        <details class="day-group" {{ 'open' if loop.first }}>
+        {% set day_pending = week_pending_daily|selectattr('day_number', 'equalto', day)|list %}
+        {% if day_pending %}
+        <details class="day-group" {{ 'open' if not ns.opened }}>
           <summary>Dia {{ day }}</summary>
           <div class="goal-list">
-            {% for d in weekly.daily_goals if d.day_number == day %}
-            <div class="goal {{ 'done' if d.done }}" data-kind="daily" data-id="{{ d.id }}" tabindex="0">
+            {% for d in day_pending %}
+            <div class="goal" data-kind="daily" data-id="{{ d.id }}" tabindex="0">
               <span class="goal-emoji">🎯</span>
               <div class="goal-content"><strong>{{ d.text }}</strong></div>
               <span class="goal-points">+{{ points.daily }} pts</span>
-              <span class="goal-check">{{ '✓' if d.done else '' }}</span>
+              <span class="goal-check"></span>
             </div>
             {% endfor %}
           </div>
         </details>
+        {% set ns.opened = true %}
+        {% endif %}
         {% endfor %}
         {% endif %}
       </div>
+      {% endif %}
       {% endfor %}
+
+      {% if archive_count > 0 %}
+      <details class="archive-section">
+        <summary>
+          <span>Metas arquivadas</span>
+          <span class="archive-count">{{ archive_count }}</span>
+        </summary>
+        <div class="goal-list archive-list">
+          {% if cycle.monthly_done %}
+          <div class="goal done archived" data-kind="monthly" data-id="{{ cycle.id }}" tabindex="0">
+            <span class="goal-emoji">🌕</span>
+            <div class="goal-content"><strong>Meta do mês</strong><small>{{ cycle.monthly_text }}</small></div>
+            <span class="goal-points">+{{ points.monthly }} pts</span>
+            <span class="goal-check">✓</span>
+          </div>
+          {% endif %}
+
+          {% for weekly in archived_weekly|sort(attribute='done_at', reverse=True) %}
+          <div class="goal done archived" data-kind="weekly" data-id="{{ weekly.id }}" tabindex="0">
+            <span class="goal-emoji">🪐</span>
+            <div class="goal-content"><strong>Semana {{ weekly.order }}</strong><small>{{ weekly.text }}</small></div>
+            <span class="goal-points">+{{ points.weekly }} pts</span>
+            <span class="goal-check">✓</span>
+          </div>
+          {% endfor %}
+
+          {% for d in archived_daily|sort(attribute='done_at', reverse=True) %}
+          <div class="goal done archived" data-kind="daily" data-id="{{ d.id }}" tabindex="0">
+            <span class="goal-emoji">🎯</span>
+            <div class="goal-content"><strong>{{ d.text }}</strong></div>
+            <span class="goal-points">+{{ points.daily }} pts</span>
+            <span class="goal-check">✓</span>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
     </div>
 
     <aside class="onepct-side">
