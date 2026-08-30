@@ -1876,3 +1876,98 @@ body{
 
 .admin-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-form-grid input{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:9px;color:#fff}.admin-form-grid button{grid-column:1/-1}
 @media(max-width:700px){.admin-form-grid{grid-template-columns:1fr}}
+
+/* ================================================================
+   RODAPÉ DA LANDING
+   ================================================================ */
+
+.landing-footer{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+  max-width:1180px;
+
+  margin:0 auto;
+  padding:32px 28px;
+
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+
+  border-top:1px solid var(--border);
+  box-sizing:border-box;
+}
+
+
+.landing-footer-column{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+
+.landing-footer-column h2{
+  margin:0 0 6px;
+
+  font:600 11px "Space Grotesk",sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+
+  color:#fff;
+}
+
+
+.landing-footer-column p{
+  margin:0;
+
+  font:400 11px/1.6 Inter,sans-serif;
+  color:var(--muted);
+}
+
+
+.landing-footer-column a{
+  width:max-content;
+
+  font:400 11px/1.6 Inter,sans-serif;
+  color:var(--brand);
+
+  text-decoration:none;
+}
+
+
+.landing-footer-column a:hover{
+  text-decoration:underline;
+}
+
+
+.landing-footer-info{
+  align-items:flex-end;
+  justify-content:flex-end;
+  text-align:right;
+}
+
+
+.landing-footer-info strong{
+  color:#fff;
+  font-weight:500;
+}
+
+
+/* ---------------- responsividade do rodapé ---------------- */
+
+@media(max-width:700px){
+
+  .landing-footer{
+    grid-template-columns:1fr;
+    gap:24px;
+    padding:28px 20px;
+  }
+
+
+  .landing-footer-info{
+    align-items:flex-start;
+    text-align:left;
+  }
+
+}
