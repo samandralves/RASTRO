@@ -24,7 +24,7 @@
 .a11y-toggle{
   position:fixed;
   right:20px;
-  bottom:20px;
+  bottom:84px;
   z-index:9999;
   width:52px;
   height:52px;
@@ -66,7 +66,7 @@
 .a11y-panel{
   position:fixed;
   right:20px;
-  bottom:84px;
+  bottom:148px;
   z-index:9999;
   width:300px;
   max-width:calc(100vw - 40px);
@@ -205,15 +205,15 @@ html[data-a11y-spacing="on"] span{
 @media (max-width:850px){
   .a11y-toggle{
     right:14px;
-    bottom:84px; /* 8px (offset da bottom-nav) + 64px (altura) + 12px (respiro) */
+    bottom:148px; /* acima do botão de apoio em crise, que agora fica no canto */
   }
   .a11y-panel{
     right:14px;
-    bottom:148px; /* acima do botão, que agora está mais alto */
+    bottom:212px;
   }
 }
 
 @media (max-width:480px){
-  .a11y-panel{right:10px;left:10px;width:auto;bottom:148px}
-  .a11y-toggle{right:14px;bottom:84px}
+  .a11y-panel{right:10px;left:10px;width:auto;bottom:212px}
+  .a11y-toggle{right:14px;bottom:148px}
 }
