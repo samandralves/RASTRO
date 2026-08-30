@@ -64,7 +64,7 @@
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 78,
-      offset: { x: 24, y: -58 },
+      offset: { x: 550, y: 330 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +73,7 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 78,
-      offset: { x: -28, y: -56 },
+      offset: { x: 96, y: 306 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
