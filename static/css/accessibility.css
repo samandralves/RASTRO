@@ -1,6 +1,6 @@
 /* ==========================================================================
    RASTRO — Widget de Acessibilidade
-   Recursos gratuitos: fonte, contraste, leitura em voz alta, OpenDyslexic,
+   Recursos gratuitos: leitura em voz alta, OpenDyslexic,
    VLibras, sublinhar links, cursor ampliado, escala de cinza.
    ========================================================================== */
 
@@ -157,34 +157,6 @@
 /* ==========================================================================
    Estados aplicados ao <html> quando o usuário ativa cada recurso
    ========================================================================== */
-
-/* Tamanho da fonte (escala global) */
-html[data-a11y-fontsize="1"]{font-size:106%}
-html[data-a11y-fontsize="2"]{font-size:112%}
-html[data-a11y-fontsize="3"]{font-size:118%}
-html[data-a11y-fontsize="4"]{font-size:124%}
-html[data-a11y-fontsize="-1"]{font-size:94%}
-
-/* Alto contraste */
-html[data-a11y-contrast="high"] body{
-  background:#000 !important;
-  color:#fff !important;
-}
-html[data-a11y-contrast="high"] .sidebar,
-html[data-a11y-contrast="high"] .a11y-panel,
-html[data-a11y-contrast="high"] .content,
-html[data-a11y-contrast="high"] .mobile-topbar,
-html[data-a11y-contrast="high"] .bottom-nav{
-  background:#000 !important;
-  color:#fff !important;
-  border-color:#ffe680 !important;
-}
-html[data-a11y-contrast="high"] a,
-html[data-a11y-contrast="high"] .nav-item,
-html[data-a11y-contrast="high"] .a11y-row span{
-  color:#ffe680 !important;
-}
-html[data-a11y-contrast="high"] #starfield{display:none !important}
 
 /* Fonte para dislexia */
 html[data-a11y-dyslexic="on"] body,
