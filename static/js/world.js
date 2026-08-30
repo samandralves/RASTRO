@@ -57,7 +57,7 @@
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 17, y: -30 }, // ajuste fino a partir da 2ª referência (era x: 12, y: -35)
+      offset: { x: 17, y: -23 }, // um pouco mais pra baixo (era y: -30)
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
