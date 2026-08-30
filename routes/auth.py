@@ -29,6 +29,11 @@ def landing():
     return render_template("auth/landing.html")
 
 
+@bp.route("/privacidade")
+def privacidade():
+    return render_template("auth/privacidade.html")
+
+
 @bp.post("/login")
 def login():
     email = (request.form.get("email") or "").strip().lower()
