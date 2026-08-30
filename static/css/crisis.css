@@ -5,21 +5,21 @@
    ========================================================================== */
 
 :root{
-  --crisis:#ff9166;
-  --crisis2:#e8703f;
-  --crisis-bg:rgba(255,145,102,.12);
+  --crisis:#f7bd6a;
+  --crisis2:#d99f3e;
+  --crisis-bg:rgba(247,189,106,.12);
 }
 
 /* ---------- Botão flutuante ---------- */
 .crisis-toggle{
   position:fixed;
-  left:20px;
-  bottom:20px;
+  right:20px;
+  bottom:84px; /* empilhado acima do botão de acessibilidade (bottom:20px + 52px + 12px) */
   z-index:9999;
   height:52px;
   padding:0 18px 0 14px;
   border-radius:999px;
-  border:1px solid rgba(255,145,102,.4);
+  border:1px solid rgba(247,189,106,.4);
   background:var(--crisis);
   color:#1a0d05;
   display:flex;
@@ -38,8 +38,8 @@
 /* ---------- Painel ---------- */
 .crisis-panel{
   position:fixed;
-  left:20px;
-  bottom:84px;
+  right:20px;
+  bottom:148px; /* acima do botão, já deslocado para cima do de acessibilidade */
   z-index:9999;
   width:380px;
   max-width:calc(100vw - 40px);
@@ -159,8 +159,8 @@
   width:120px;
   height:120px;
   border-radius:50%;
-  border:1.5px solid rgba(255,145,102,.4);
-  background:radial-gradient(circle,rgba(255,145,102,.28),rgba(255,145,102,.05) 70%);
+  border:1.5px solid rgba(247,189,106,.4);
+  background:radial-gradient(circle,rgba(247,189,106,.28),rgba(247,189,106,.05) 70%);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -226,14 +226,15 @@
   margin-top:2px;
 }
 
-/* ---------- Mobile: não colidir com a bottom-nav ---------- */
+/* ---------- Mobile: não colidir com a bottom-nav nem com o botão
+   de acessibilidade (que nesses breakpoints sobe para bottom:84px) ---------- */
 @media (max-width:850px){
-  .crisis-toggle{left:14px;bottom:84px}
-  .crisis-panel{left:14px;bottom:148px}
+  .crisis-toggle{right:14px;bottom:148px}
+  .crisis-panel{right:14px;bottom:212px}
 }
 @media (max-width:480px){
-  .crisis-panel{left:10px;right:10px;width:auto;bottom:148px}
-  .crisis-toggle{left:14px;bottom:84px}
+  .crisis-panel{left:10px;right:10px;width:auto;bottom:212px}
+  .crisis-toggle{right:14px;bottom:148px}
 }
 
 /* Respeita preferência de movimento reduzido */
