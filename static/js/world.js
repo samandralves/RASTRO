@@ -70,6 +70,16 @@
     },
   };
 
+  // Texto fixo de cada balão (visual de referência do mundo). Não depende
+  // do `label`/`message` que vêm do servidor — é sempre este texto, pro
+  // item aparecer ou não (bloqueado ou não).
+  const ELEMENT_MESSAGES = {
+    0: "Sua casinha no mundo — cresce junto com você.",
+    30: "Um lago calmo pra respirar entre uma tarefa e outra.",
+    50: "Um banco pra sentar e ver o quanto você já andou.",
+    75: "Uma árvore que cresce a cada nova novidade.",
+  };
+
   // Paleta usada pelo engine (halo da ilha, itens bloqueados, tooltip).
   // Reaproveitada das variáveis de style.css citadas no cabeçalho deste
   // arquivo. Ajuste aqui se os tons de style.css mudarem.
@@ -278,6 +288,7 @@
             anchor: slot.anchor,
             idle: slot.idle,
             label: element.label,
+            tooltipText: ELEMENT_MESSAGES[element.cost] || null,
             element: element,
           },
           { locked: !element.owned }
@@ -391,10 +402,18 @@
           state.targetMul = state.hovering ? 1.1 : 1;
         }, 140);
 
-        if (piece.item.element && this.options.onSelectElement) {
-          this.options.onSelectElement(piece.item.element);
+        // balão de texto: usa o texto fixo do elemento (casa/lago/banco/
+        // árvore), aparecendo mesmo se o item ainda estiver bloqueado.
+        // Se não houver texto fixo, cai pro label do próprio elemento.
+        if (piece.item.tooltipText) {
+          this._showTooltip(sprite, piece.item.tooltipText);
         } else if (piece.item.label) {
           this._showTooltip(sprite, piece.item.label);
+        }
+
+        // abre o modal de detalhe/compra normalmente, junto com o balão
+        if (piece.item.element && this.options.onSelectElement) {
+          this.options.onSelectElement(piece.item.element);
         }
       });
     }
@@ -427,6 +446,17 @@
         label.height + paddingY * 2,
         10
       );
+      bg.endFill();
+
+      // setinha (tail) do balão, apontando pro item — como na referência
+      const tailSize = 7;
+      const tailY = label.height / 2 + paddingY;
+      bg.lineStyle(1, COLORS.tooltipBorder, 0.6);
+      bg.beginFill(COLORS.tooltipBg, 0.92);
+      bg.moveTo(-tailSize, tailY);
+      bg.lineTo(0, tailY + tailSize);
+      bg.lineTo(tailSize, tailY);
+      bg.closePath();
       bg.endFill();
 
       container.addChild(bg, label);
