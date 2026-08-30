@@ -403,16 +403,18 @@
         }, 140);
 
         // balão de texto: usa o texto fixo do elemento (casa/lago/banco/
-        // árvore), aparecendo mesmo se o item ainda estiver bloqueado.
-        // Se não houver texto fixo, cai pro label do próprio elemento.
+        // árvore), aparecendo sempre — obtido ou não. Se não houver texto
+        // fixo, cai pro label do próprio elemento.
         if (piece.item.tooltipText) {
           this._showTooltip(sprite, piece.item.tooltipText);
         } else if (piece.item.label) {
           this._showTooltip(sprite, piece.item.label);
         }
 
-        // abre o modal de detalhe/compra normalmente, junto com o balão
-        if (piece.item.element && this.options.onSelectElement) {
+        // o modal de detalhe/compra só abre pra item ainda bloqueado (é
+        // por ele que a compra acontece). Item já obtido fica só com o
+        // balão — sem a tela de "você já descobriu essa marca".
+        if (piece.item.element && !piece.item.element.owned && this.options.onSelectElement) {
           this.options.onSelectElement(piece.item.element);
         }
       });
