@@ -199,28 +199,23 @@ html[data-a11y-spacing="on"] span{
 }
 
 /* No celular a .bottom-nav (barra "TALK/WORLD/1%/SECRET/Perfil") fica fixa
-   em bottom:8px com 64px de altura, terminando em ~72px do rodapé.
-   Por isso, nesse breakpoint, subimos o botão e o painel de acessibilidade
-   para não tampar o item "Perfil" (o último da barra, à direita). */
+   em bottom:8px com 64px de altura. Isso só existe em páginas logadas
+   (base.html) — a landing não tem essa barra, então aqui só ajustamos a
+   margem lateral; a elevação do botão fica nas regras com
+   body.has-crisis-widget mais abaixo. */
 @media (max-width:850px){
-  .a11y-toggle{
-    right:14px;
-    bottom:84px; /* 8px (offset da bottom-nav) + 64px (altura) + 12px (respiro) */
-  }
-  .a11y-panel{
-    right:14px;
-    bottom:148px; /* acima do botão, que agora está mais alto */
-  }
+  .a11y-toggle{right:14px}
+  .a11y-panel{right:14px}
 }
 
 @media (max-width:480px){
-  .a11y-panel{right:10px;left:10px;width:auto;bottom:148px}
-  .a11y-toggle{right:14px;bottom:84px}
+  .a11y-panel{right:10px;left:10px;width:auto}
+  .a11y-toggle{right:14px}
 }
 
-/* Em páginas que também têm o botão "Preciso de apoio" (empilhado no mesmo
-   canto, abaixo deste), o botão e o painel de acessibilidade sobem para
-   não ficar em cima dele. */
+/* Em páginas que têm a bottom-nav e o botão "Preciso de apoio" (empilhado
+   no mesmo canto, abaixo deste), o botão e o painel de acessibilidade
+   sobem para não ficar em cima desses elementos. */
 body.has-crisis-widget .a11y-toggle{bottom:84px}
 body.has-crisis-widget .a11y-panel{bottom:148px}
 
