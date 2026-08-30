@@ -62,7 +62,7 @@
       idle: null,
     },
     75: {
-      url: "/static/img/arvore_sem_fundo.png",
+      url: "/static/img/tree.png",
       baseWidth: 78,
       offset: { x: 24, y: -58 },
       anchor: { x: 0.5, y: 1 },
