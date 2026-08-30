@@ -198,7 +198,22 @@ html[data-a11y-spacing="on"] span{
   border-radius:4px;
 }
 
+/* No celular a .bottom-nav (barra "TALK/WORLD/1%/SECRET/Perfil") fica fixa
+   em bottom:8px com 64px de altura, terminando em ~72px do rodapé.
+   Por isso, nesse breakpoint, subimos o botão e o painel de acessibilidade
+   para não tampar o item "Perfil" (o último da barra, à direita). */
+@media (max-width:850px){
+  .a11y-toggle{
+    right:14px;
+    bottom:84px; /* 8px (offset da bottom-nav) + 64px (altura) + 12px (respiro) */
+  }
+  .a11y-panel{
+    right:14px;
+    bottom:148px; /* acima do botão, que agora está mais alto */
+  }
+}
+
 @media (max-width:480px){
-  .a11y-panel{right:10px;left:10px;width:auto}
-  .a11y-toggle{right:14px;bottom:14px}
+  .a11y-panel{right:10px;left:10px;width:auto;bottom:148px}
+  .a11y-toggle{right:14px;bottom:84px}
 }
