@@ -62,9 +62,18 @@
       idle: null,
     },
     75: {
-      url: "/static/img/arvore_sem_fundo.png",
+      url: "/static/img/arvore_azul.png",
       baseWidth: 78,
       offset: { x: 24, y: -58 },
+      anchor: { x: 0.5, y: 1 },
+      idle: "sway",
+    },
+    // Árvore roxa — mesmo tratamento visual da árvore azul (slot 75),
+    // espelhada pro outro lado da ilha pra não sobrepor a primeira.
+    100: {
+      url: "/static/img/arvore_roxa.png",
+      baseWidth: 78,
+      offset: { x: -28, y: -56 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -78,6 +87,7 @@
     30: "Um lago calmo pra respirar entre uma tarefa e outra.",
     50: "Um banco pra sentar e ver o quanto você já andou.",
     75: "Uma árvore que cresce a cada nova novidade.",
+    100: "Uma árvore roxa que floresce quando você vai além.",
   };
 
   // Paleta usada pelo engine (halo da ilha, itens bloqueados, tooltip).
