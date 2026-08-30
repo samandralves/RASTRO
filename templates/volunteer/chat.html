@@ -7,14 +7,25 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    color: #9fb0cc;
+    font-size: 13px;
+    font-weight: 500;
+    color: #c7d3e8;
     text-decoration: none;
-    margin-bottom: 12px;
-    transition: color 0.15s ease;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   }
   .back-link:hover {
     color: #4fe0b3;
+    border-color: rgba(79, 224, 179, 0.5);
+    background: rgba(79, 224, 179, 0.08);
+  }
+  .back-link:focus-visible {
+    outline: 2px solid #4fe0b3;
+    outline-offset: 2px;
   }
 </style>
 {% endblock %}
@@ -23,6 +34,7 @@
 <section class="screen talk-screen">
   <div class="screen-heading">
     <a href="{{ url_for('main.talk') }}" class="back-link">← Voltar para o Talk</a>
+    <p class="eyebrow">VOLUNTARIADO</p>
     <h1>Conte o que você quer conversar.</h1>
     <p>Vamos ler com cuidado e te encaminhar da forma mais adequada — não precisa ser um texto longo.</p>
   </div>
