@@ -6,6 +6,7 @@ do progresso. Este módulo só depende de flask + models, então nenhum
 blueprint precisa importar app.py — o que evita import circular.
 """
 
+import re
 from functools import wraps
 
 from flask import redirect, session, url_for
@@ -100,3 +101,23 @@ def completed_count_for(user):
             .first()
         )
     return cycle.completed_items if cycle else 0
+
+
+# ---------------- validação de texto livre ----------------
+
+def is_meaningful_text(value, min_len=3):
+    """True se `value` tiver texto de verdade: não vazio, não só espaços,
+    não só o mesmo caractere repetido (ex.: "...", "aaaa") e com pelo menos
+    `min_len` letras de fato (conta letras acentuadas também)."""
+    if not value:
+        return False
+    text = value.strip()
+    if len(text) < min_len:
+        return False
+    letters = re.findall(r"[a-zA-ZÀ-ÖØ-öø-ÿ]", text)
+    if len(letters) < min_len:
+        return False
+    # bloqueia "aaaaaa", "kkkkkk" etc: exige pelo menos 2 letras diferentes
+    if len(set(letter.lower() for letter in letters)) < 2:
+        return False
+    return True
