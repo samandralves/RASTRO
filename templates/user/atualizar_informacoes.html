@@ -1,5 +1,120 @@
 {% extends "base.html" %}
 {% block title %}Atualizar informações{% endblock %}
+
+{% block head %}
+<style>
+  .update-layout { display: flex; flex-direction: column; gap: 18px; max-width: 640px; }
+
+  .update-card {
+    background: #0b1830;
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .update-card .eyebrow {
+    letter-spacing: 1px;
+    margin: 0 0 16px;
+  }
+  .update-card .card-intro {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
+
+  /* rádio em formato de pílula, sem o bullet nativo do navegador */
+  .radio-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .radio-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #c7d3e8;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .radio-pill:hover { border-color: rgba(79, 224, 179, 0.4); }
+  .radio-pill input[type="radio"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    position: relative;
+    margin: 0;
+  }
+  .radio-pill input[type="radio"]:checked {
+    border-color: var(--brand);
+  }
+  .radio-pill input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+  .radio-pill:has(input:checked) {
+    border-color: rgba(79, 224, 179, 0.5);
+    background: rgba(79, 224, 179, 0.06);
+  }
+
+  .update-select,
+  .update-textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #e9f2ff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+  }
+  .update-select:focus,
+  .update-textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+  }
+  .update-textarea {
+    resize: vertical;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .update-select {
+    margin-bottom: 12px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239fb0cc' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  .update-select option { background: #0b1830; color: #e9f2ff; }
+
+  .update-submit {
+    background: var(--brand);
+    color: #04342c;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .update-submit:hover { opacity: 0.9; }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="screen talk-screen">
   <div class="screen-heading">
@@ -8,38 +123,38 @@
     <p>Tudo aqui é anônimo nas estatísticas — só usamos pra melhorar o programa.</p>
   </div>
 
-  <div class="talk-layout">
-    <div class="talk-main" style="display:flex;flex-direction:column;gap:24px;">
+  <div class="update-layout">
 
-      <form method="post" action="{{ url_for('main.atualizar_feedback') }}" class="side-card">
-        <p class="eyebrow">O 1% TEM AJUDADO?</p>
-        <label><input type="radio" name="helped" value="sim" required> Sim, bastante</label><br>
-        <label><input type="radio" name="helped" value="parcialmente"> Parcialmente</label><br>
-        <label><input type="radio" name="helped" value="nao"> Ainda não</label>
-        <textarea name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)" style="width:100%;margin-top:10px;"></textarea>
-        <button type="submit" class="send-btn" style="margin-top:10px;">Enviar feedback</button>
-      </form>
+    <form method="post" action="{{ url_for('main.atualizar_feedback') }}" class="update-card">
+      <p class="eyebrow">O 1% TEM AJUDADO?</p>
+      <div class="radio-pills">
+        <label class="radio-pill"><input type="radio" name="helped" value="sim" required> Sim, bastante</label>
+        <label class="radio-pill"><input type="radio" name="helped" value="parcialmente"> Parcialmente</label>
+        <label class="radio-pill"><input type="radio" name="helped" value="nao"> Ainda não</label>
+      </div>
+      <textarea class="update-textarea" name="comment" rows="3" placeholder="Quer contar mais alguma coisa? (opcional)"></textarea>
+      <button type="submit" class="update-submit">Enviar feedback</button>
+    </form>
 
-      <form method="post" action="{{ url_for('main.atualizar_satisfacao') }}" class="side-card">
-        <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
-        <select name="context" required style="width:100%;padding:8px;margin-bottom:8px;">
-          <option value="" disabled selected>Escolha um contexto</option>
-          {% for c in satisfaction_contexts %}
-          <option value="{{ c }}">{{ c|title }}</option>
-          {% endfor %}
-        </select>
-        <textarea name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)" style="width:100%;"></textarea>
-        <button type="submit" class="send-btn" style="margin-top:10px;">Enviar, de forma anônima</button>
-      </form>
+    <form method="post" action="{{ url_for('main.atualizar_satisfacao') }}" class="update-card">
+      <p class="eyebrow">O QUE TEM TE INCOMODADO?</p>
+      <select class="update-select" name="context" required>
+        <option value="" disabled selected>Escolha um contexto</option>
+        {% for c in satisfaction_contexts %}
+        <option value="{{ c }}">{{ c|title }}</option>
+        {% endfor %}
+      </select>
+      <textarea class="update-textarea" name="reason_text" rows="3" placeholder="O que exatamente te incomoda nesse contexto? (opcional)"></textarea>
+      <button type="submit" class="update-submit">Enviar, de forma anônima</button>
+    </form>
 
-      <form method="post" action="{{ url_for('main.atualizar_objetivo') }}" class="side-card">
-        <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
-        <p>Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
-        <textarea name="text" rows="4" placeholder="Escreva livremente..." style="width:100%;" required></textarea>
-        <button type="submit" class="send-btn" style="margin-top:10px;">Atualizar objetivo</button>
-      </form>
+    <form method="post" action="{{ url_for('main.atualizar_objetivo') }}" class="update-card">
+      <p class="eyebrow">SEU OBJETIVO MUDOU?</p>
+      <p class="card-intro">Conte de novo o que está vivendo — vamos gerar um novo bloco de metas a partir disso (também passa por aprovação antes de valer).</p>
+      <textarea class="update-textarea" name="text" rows="4" placeholder="Escreva livremente..." required></textarea>
+      <button type="submit" class="update-submit">Atualizar objetivo</button>
+    </form>
 
-    </div>
   </div>
 </section>
 {% endblock %}
