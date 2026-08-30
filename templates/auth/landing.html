@@ -12,7 +12,7 @@
   <!-- CSS principal -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-  <!-- CSS do widget de acessibilidade -->
+  <!-- CSS do sistema de acessibilidade -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
 </head>
 
@@ -20,103 +20,172 @@
 
   <canvas id="starfield"></canvas>
 
+
   <div class="landing-page">
 
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
     <header class="landing-header">
+
       <img
         src="{{ url_for('static', filename='img/logo-rastro.png') }}"
         alt="Rastro"
       >
+
     </header>
+
+
+    <!-- ============================================================
+         CONTEÚDO PRINCIPAL
+         ============================================================ -->
 
     <main class="landing-main">
 
       <section class="landing-hero">
 
-        <p class="eyebrow">SINAIS INVISÍVEIS</p>
+        <p class="eyebrow">
+          SINAIS INVISÍVEIS
+        </p>
+
 
         <h1>
           Você não precisa entender tudo o que sente<br>
           para começar a cuidar de si.
         </h1>
 
+
         <p class="landing-lede">
           O Rastro é um espaço para jovens que têm dificuldade de colocar em palavras o que estão
-          sentindo. Uma jornada simples —
-          <strong>sentir → identificar → acolher → agir → evoluir</strong> —
+          sentindo. Uma jornada simples — <strong>sentir → identificar → acolher → agir → evoluir</strong> —
           transformada em pequenos passos possíveis.
         </p>
+
 
         <div class="landing-features">
 
           <div class="landing-feature">
-            <span class="nav-symbol">◌</span>
+
+            <span class="nav-symbol">
+              ◌
+            </span>
+
             <div>
               <strong>TALK</strong>
+
               <small>
                 Conte do seu jeito. O Rastro escuta e identifica seu objetivo e sua principal barreira.
               </small>
             </div>
+
           </div>
 
+
           <div class="landing-feature">
-            <span class="nav-symbol one">1%</span>
+
+            <span class="nav-symbol one">
+              1%
+            </span>
+
             <div>
               <strong>1%</strong>
+
               <small>
                 Metas pequenas e possíveis, geradas a partir do que você contou no TALK.
               </small>
             </div>
+
           </div>
 
+
           <div class="landing-feature">
-            <span class="nav-symbol">◎</span>
+
+            <span class="nav-symbol">
+              ◎
+            </span>
+
             <div>
               <strong>WORLD</strong>
+
               <small>
                 Um espaço virtual seu, que evolui visualmente conforme você avança.
               </small>
             </div>
+
           </div>
 
+
           <div class="landing-feature">
-            <span class="nav-symbol">▣</span>
+
+            <span class="nav-symbol">
+              ▣
+            </span>
+
             <div>
               <strong>SECRET</strong>
+
               <small>
                 Compartilhamento anônimo e moderado — para você descobrir que não está sozinho.
               </small>
             </div>
+
           </div>
 
+
           <div class="landing-feature">
-            <span class="nav-symbol">♙</span>
+
+            <span class="nav-symbol">
+              ♙
+            </span>
+
             <div>
               <strong>PERFIL</strong>
+
               <small>
                 Acompanhe sua trajetória e os padrões que aparecem no seu Rastro.
               </small>
             </div>
+
           </div>
 
         </div>
+
       </section>
 
 
-      <section class="auth-card" id="auth-card">
+      <!-- ============================================================
+           LOGIN / CADASTRO
+           ============================================================ -->
+
+      <section
+        class="auth-card"
+        id="auth-card"
+      >
 
         {% with messages = get_flashed_messages() %}
+
           {% if messages %}
+
             <div class="flash-banner">
+
               {% for message in messages %}
-                <p>{{ message }}</p>
+
+                <p>
+                  {{ message }}
+                </p>
+
               {% endfor %}
+
             </div>
+
           {% endif %}
+
         {% endwith %}
 
 
         <div class="auth-tabs">
+
           <button
             type="button"
             class="auth-tab"
@@ -125,6 +194,7 @@
             Entrar
           </button>
 
+
           <button
             type="button"
             class="auth-tab"
@@ -132,6 +202,7 @@
           >
             Criar conta
           </button>
+
         </div>
 
 
@@ -269,11 +340,57 @@
 
     </main>
 
+
+    <!-- ============================================================
+         RODAPÉ
+         ============================================================ -->
+
+    <footer class="landing-footer">
+
+      <!-- CONTATO -->
+
+      <div class="landing-footer-column">
+
+        <h2>
+          Contato
+        </h2>
+
+        <p>
+          Algum problema ou sugestão?
+        </p>
+
+        <a href="mailto:rastroadm.contato@gmail.com">
+          rastroadm.contato@gmail.com
+        </a>
+
+        <p>
+          Belo Horizonte - MG
+        </p>
+
+      </div>
+
+
+      <!-- INFORMAÇÕES -->
+
+      <div class="landing-footer-column landing-footer-info">
+
+        <p>
+          Desenvolvido por <strong>SIMP - Estratégias</strong>
+        </p>
+
+        <p>
+          © Rastro, 2026. Todos os direitos reservados.
+        </p>
+
+      </div>
+
+    </footer>
+
   </div>
 
 
   <!-- ============================================================
-       WIDGET DE ACESSIBILIDADE
+       BOTÃO DE ACESSIBILIDADE
        ============================================================ -->
 
   <button
@@ -295,6 +412,10 @@
   </button>
 
 
+  <!-- ============================================================
+       PAINEL DE ACESSIBILIDADE
+       ============================================================ -->
+
   <div
     id="a11y-panel"
     class="a11y-panel"
@@ -302,14 +423,16 @@
     aria-label="Opções de acessibilidade"
   >
 
-    <h2>Acessibilidade</h2>
+    <h2>
+      Acessibilidade
+    </h2>
 
-
-    <!-- Fonte para dislexia -->
 
     <div class="a11y-row">
 
-      <span>Fonte para dislexia</span>
+      <span>
+        Fonte para dislexia
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -322,11 +445,11 @@
     </div>
 
 
-    <!-- Sublinhar links -->
-
     <div class="a11y-row">
 
-      <span>Sublinhar links</span>
+      <span>
+        Sublinhar links
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -339,11 +462,11 @@
     </div>
 
 
-    <!-- Cursor ampliado -->
-
     <div class="a11y-row">
 
-      <span>Cursor ampliado</span>
+      <span>
+        Cursor ampliado
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -356,11 +479,11 @@
     </div>
 
 
-    <!-- Escala de cinza -->
-
     <div class="a11y-row">
 
-      <span>Escala de cinza</span>
+      <span>
+        Escala de cinza
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -373,11 +496,11 @@
     </div>
 
 
-    <!-- Espaçamento -->
-
     <div class="a11y-row">
 
-      <span>Espaçamento de texto</span>
+      <span>
+        Espaçamento de texto
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -390,11 +513,11 @@
     </div>
 
 
-    <!-- VLibras -->
-
     <div class="a11y-row">
 
-      <span>VLibras (Libras)</span>
+      <span>
+        VLibras (Libras)
+      </span>
 
       <button
         class="a11y-toggle-switch"
@@ -407,11 +530,11 @@
     </div>
 
 
-    <!-- Leitura em voz alta -->
-
     <div class="a11y-row">
 
-      <span>Ler página em voz alta</span>
+      <span>
+        Ler página em voz alta
+      </span>
 
       <div class="a11y-btn-group">
 
@@ -438,8 +561,6 @@
 
     </div>
 
-
-    <!-- Restaurar -->
 
     <button
       id="a11y-reset"
@@ -472,34 +593,30 @@
 
       function activate(tab) {
 
-        tabs.forEach((t) => {
+        tabs.forEach((t) =>
           t.classList.toggle(
             "active",
             t.dataset.tab === tab
-          );
-        });
+          )
+        );
 
 
-        Object.entries(forms).forEach(([key, form]) => {
-
+        Object.entries(forms).forEach(([key, form]) =>
           form.classList.toggle(
             "active",
             key === tab
-          );
-
-        });
+          )
+        );
 
       }
 
 
-      tabs.forEach((t) => {
-
+      tabs.forEach((t) =>
         t.addEventListener(
           "click",
           () => activate(t.dataset.tab)
-        );
-
-      });
+        )
+      );
 
 
       const requested =
@@ -516,7 +633,7 @@
   </script>
 
 
-  <!-- JavaScript do widget de acessibilidade -->
+  <!-- JavaScript do sistema de acessibilidade -->
   <script src="{{ url_for('static', filename='js/accessibility.js') }}"></script>
 
 </body>
