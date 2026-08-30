@@ -11,6 +11,7 @@ WORLD_ELEMENTS = [
     (30, "🌊", "Um lago calmo pra respirar"),
     (50, "🪑", "Um banco pra descansar"),
     (75, "🌳", "Uma barreira atravessada"),
+    (100, "🌳", "Uma nova marca florescendo"),
 ]
 
 WORLD_ELEMENT_MESSAGES = {
@@ -18,6 +19,7 @@ WORLD_ELEMENT_MESSAGES = {
     30: "Nem tudo precisa ser feito com pressa. Às vezes, o avanço também é parar, respirar e continuar depois.",
     50: "Olhar pra trás e ver o quanto você já andou também é progresso.",
     75: "Você enfrentou aquilo que um dia parecia difícil demais. Essa conquista prova que seus limites podem ser apenas o começo de algo maior.",
+    100: "Você foi além do que já tinha feito — essa marca é a prova disso.",
 }
 
 # ---------------- TROCA DE PONTOS: recompensas disponíveis ----------------
