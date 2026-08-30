@@ -56,13 +56,13 @@
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 76,
+      baseWidth: 48, // mais ~10% menor (era 53)
       offset: { x: 46, y: -2 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
-      url: "/static/img/tree.png",
+      url: "/static/img/arvore_sem_fundo.png",
       baseWidth: 78,
       offset: { x: 24, y: -58 },
       anchor: { x: 0.5, y: 1 },
