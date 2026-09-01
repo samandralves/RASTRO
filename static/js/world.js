@@ -70,6 +70,13 @@ const ELEMENT_SLOTS = {
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
+    100: {
+      url: "/static/img/arvore_roxa.png",
+      baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
+      offset: { x: -133, y: -17 },
+      anchor: { x: 0.5, y: 1 },
+      idle: "sway",
+    },
   };
   // Texto fixo de cada balão (visual de referência do mundo). Não depende
   // do `label`/`message` que vêm do servidor — é sempre este texto, pro
