@@ -39,32 +39,39 @@
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
   // não foi conquistado aparece apagado e pode ser obtido com pontos.
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
-const ELEMENT_SLOTS = {
+  //
+  // Layout ajustado para casar com a composição de referência: casa
+  // centralizada como foco principal, árvores simetricamente afastadas
+  // nas bordas (com margem confortável), lago na frente-esquerda da casa
+  // e banco na frente-direita, todos com espaçamento entre si.
+  const ELEMENT_SLOTS = {
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: 0, y: -48 },
+      offset: { x: 0, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -60, y: 0 },
+      offset: { x: -100, y: 28 },
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 18, y: 2 }, // mais perto da lagoa, fechando o vazio no meio da grama
+      offset: { x: 95, y: 28 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
-      baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
-      offset: { x: 127, y: -15 },
+      baseWidth: 78,
+      // mais perto da borda direita da ilha, sem colar nela — altura (y)
+      // mantida igual, só o x aumentou
+      offset: { x: 165, y: -6 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -72,12 +79,15 @@ const ELEMENT_SLOTS = {
     // espelhada pro outro lado da ilha pra não sobrepor a primeira.
     100: {
       url: "/static/img/arvore_roxa.png",
-      baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      offset: { x: -133, y: -17 },
+      baseWidth: 78,
+      // mais perto da borda esquerda da ilha, sem colar nela — altura (y)
+      // mantida igual, só o x aumentou (em módulo)
+      offset: { x: -165, y: -6 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
   };
+
   // Texto fixo de cada balão (visual de referência do mundo). Não depende
   // do `label`/`message` que vêm do servidor — é sempre este texto, pro
   // item aparecer ou não (bloqueado ou não).
