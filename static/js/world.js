@@ -58,7 +58,7 @@
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 38, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
+      baseWidth: 46, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
       // x recalculado: mais à direita, pra ficar simétrico à lagoa em
       // relação ao eixo da casa (casa em -2, lagoa a -54 dela; banco
       // agora a +54 dela, era só +42)
