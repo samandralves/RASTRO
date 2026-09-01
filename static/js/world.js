@@ -64,7 +64,7 @@ const ELEMENT_SLOTS = {
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 68, // recuo fino — bem próximo do valor original (era 68 → 85 → 75 → 68)
-      offset: { x: 132, y: -17 },
+      offset: { x: 80, y: -17 }, // bem mais próxima da casa — 132 estava longe demais
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +73,7 @@ const ELEMENT_SLOTS = {
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 86, // recuo fino (era 88 → 108 → 96 → 86)
-      offset: { x: -138, y: -19 },
+      offset: { x: -77, y: -19 }, // bem mais próxima da casa — -138 estava longe demais
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
