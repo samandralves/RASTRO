@@ -43,37 +43,28 @@ const ELEMENT_SLOTS = {
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      // casa como foco principal: quase no centro óptico da ilha, levemente
-      // recuada (mais ao fundo) — posição recalculada a partir da elipse
-      // real da grama e da referência
-      offset: { x: -14, y: -58 },
+      offset: { x: 0, y: -48 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      // lago na frente da casa, deslocado à esquerda — forma o vértice
-      // esquerdo do triângulo casa/lago/banco
-      offset: { x: -77, y: 17 },
+      offset: { x: -60, y: 0 },
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 48, // mais ~10% menor (era 53)
-      // banco na frente da casa, deslocado à direita — vértice direito do
-      // triângulo, mais próximo do centro que o lago (assimetria fiel à referência)
-      offset: { x: 20, y: 21 },
+      baseWidth: 65, // maior e mais presente, como na referência (era 48)
+      offset: { x: 30, y: 6 }, // mais pra direita e mais pra frente, quase na altura da lagoa
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
-      baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
-      // moldura direita: afastada da casa, mais ao fundo, com margem
-      // confortável até a borda da grama
-      offset: { x: 94, y: -68 },
+      baseWidth: 85, // maior, com mais presença — leitura de "mais ao fundo" (era 68)
+      offset: { x: 148, y: -18 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -81,9 +72,8 @@ const ELEMENT_SLOTS = {
     // espelhada pro outro lado da ilha pra não sobrepor a primeira.
     100: {
       url: "/static/img/arvore_roxa.png",
-      baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      // moldura esquerda, espelhando a árvore azul
-      offset: { x: -101, y: -71 },
+      baseWidth: 108, // maior que a azul — leitura de "mais em primeiro plano" (era 88)
+      offset: { x: -152, y: -20 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
