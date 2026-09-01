@@ -78,8 +78,10 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      // x recalculado por análise de pixel da referência (era -135)
-      offset: { x: -81, y: -18 },
+      // x recalculado (era -81, mas encostava na lagoa) — calibrado por
+      // pixel direto entre dois screenshots reais do site pra abrir ~45px
+      // de folga da borda da lagoa
+      offset: { x: -104, y: -18 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
