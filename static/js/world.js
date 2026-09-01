@@ -59,9 +59,10 @@
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 38, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
-      // x recalculado por análise de pixel da referência: mais à direita,
-      // sob a casa (era 8)
-      offset: { x: 40, y: -23 },
+      // x recalculado: mais à direita, pra ficar simétrico à lagoa em
+      // relação ao eixo da casa (casa em -2, lagoa a -54 dela; banco
+      // agora a +54 dela, era só +42)
+      offset: { x: 52, y: -23 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
