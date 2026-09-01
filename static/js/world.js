@@ -39,50 +39,27 @@
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
   // não foi conquistado aparece apagado e pode ser obtido com pontos.
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
-  const ELEMENT_SLOTS = {
-    0: {
-      url: "/static/img/house.png",
-      baseWidth: 95,
-      // casa centralizada, principal foco da ilha
-      offset: { x: 0, y: -58 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "smoke",
-    },
-    30: {
-      url: "/static/img/pond.png",
-      baseWidth: 96,
-      // lago na parte frontal esquerda da casa, com espaçamento maior
-      offset: { x: -95, y: 18 },
-      anchor: { x: 0.5, y: 0.62 },
-      idle: "shimmer",
-    },
-    50: {
-      url: "/static/img/bench_recortado.png",
-      baseWidth: 48, // mais ~10% menor (era 53)
-      // banco na parte frontal direita da casa, espelhando o lago
-      offset: { x: 95, y: 18 },
-      anchor: { x: 0.5, y: 0.78 },
-      idle: null,
-    },
-    75: {
-      url: "/static/img/arvore_azul.png",
-      baseWidth: 78,
-      // lado direito da ilha, próxima à borda, espelhando a árvore roxa
-      offset: { x: 155, y: -8 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-    // Árvore roxa — mesmo tratamento visual da árvore azul (slot 75),
-    // espelhada pro outro lado da ilha pra não sobrepor a primeira.
-    100: {
-      url: "/static/img/arvore_roxa.png",
-      baseWidth: 78,
-      // lado esquerdo da ilha, próxima à borda, espelhando a árvore azul
-      offset: { x: -155, y: -8 },
-      anchor: { x: 0.5, y: 1 },
-      idle: "sway",
-    },
-  };
+ const ELEMENT_SLOTS = {
+  0: { // Casa
+    offset: { x: 0, y: -75 },      // sobe um pouco e fica realmente centralizada
+  },
+
+  30: { // Lago
+    offset: { x: -105, y: 28 },    // um pouco mais para esquerda e para frente
+  },
+
+  50: { // Banco
+    offset: { x: 88, y: 32 },      // ligeiramente mais baixo que o lago
+  },
+
+  75: { // Árvore Azul
+    offset: { x: 165, y: -5 },     // direita, próxima da borda
+  },
+
+  100: { // Árvore Roxa
+    offset: { x: -165, y: -5 },    // espelhada
+  }
+};
 
   // Texto fixo de cada balão (visual de referência do mundo). Não depende
   // do `label`/`message` que vêm do servidor — é sempre este texto, pro
