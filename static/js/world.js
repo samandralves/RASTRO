@@ -39,32 +39,36 @@
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
   // não foi conquistado aparece apagado e pode ser obtido com pontos.
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
-const ELEMENT_SLOTS = {
+  const ELEMENT_SLOTS = {
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: 0, y: -48 },
+      // casa centralizada, principal foco da ilha
+      offset: { x: 0, y: -58 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -60, y: 0 },
+      // lago na parte frontal esquerda da casa, com margem confortável da borda
+      offset: { x: -85, y: 6 },
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 18, y: 2 }, // mais perto da lagoa, fechando o vazio no meio da grama
+      // banco na parte frontal direita da casa, espelhando o lago
+      offset: { x: 85, y: 6 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
-      baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
-      offset: { x: 127, y: -15 },
+      baseWidth: 78,
+      // lado direito da ilha, próxima à borda, espelhando a árvore roxa
+      offset: { x: 155, y: -8 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -72,12 +76,14 @@ const ELEMENT_SLOTS = {
     // espelhada pro outro lado da ilha pra não sobrepor a primeira.
     100: {
       url: "/static/img/arvore_roxa.png",
-      baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      offset: { x: -133, y: -17 },
+      baseWidth: 78,
+      // lado esquerdo da ilha, próxima à borda, espelhando a árvore azul
+      offset: { x: -155, y: -8 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
   };
+
   // Texto fixo de cada balão (visual de referência do mundo). Não depende
   // do `label`/`message` que vêm do servidor — é sempre este texto, pro
   // item aparecer ou não (bloqueado ou não).
@@ -429,15 +435,10 @@ const ELEMENT_SLOTS = {
           state.targetMul = state.hovering ? 1.1 : 1;
         }, 140);
 
-        if (piece.locked) {
-          // item ainda bloqueado: nunca mostra balão — e limpa qualquer
-          // balão de um clique anterior que ainda esteja sumindo na tela,
-          // pra nunca sobrar nada por trás do modal de compra que vai abrir.
-          this._hideAllTooltips();
-        } else if (piece.item.tooltipText) {
-          // balão de texto: usa o texto fixo do elemento (casa/lago/banco/
-          // árvore), só pra item já comprado (owned). Se não houver texto
-          // fixo, cai pro label do próprio elemento.
+        // balão de texto: usa o texto fixo do elemento (casa/lago/banco/
+        // árvore), aparecendo sempre — obtido ou não. Se não houver texto
+        // fixo, cai pro label do próprio elemento.
+        if (piece.item.tooltipText) {
           this._showTooltip(sprite, piece.item.tooltipText);
         } else if (piece.item.label) {
           this._showTooltip(sprite, piece.item.label);
@@ -501,16 +502,6 @@ const ELEMENT_SLOTS = {
 
       this.decorLayer.addChild(container);
       this.tooltips.push({ container, born: this.time, ttl: 210 });
-    }
-
-    /** Remove imediatamente todos os balões ativos (fade em andamento ou
-     * não), sem esperar o tempo de vida normal deles terminar. */
-    _hideAllTooltips() {
-      for (const t of this.tooltips) {
-        this.decorLayer.removeChild(t.container);
-        t.container.destroy({ children: true });
-      }
-      this.tooltips = [];
     }
 
     // ------------------------------------------------------------ fumaça --
