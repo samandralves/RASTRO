@@ -50,14 +50,14 @@ const ELEMENT_SLOTS = {
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -66, y: 4 },
+      offset: { x: -60, y: 0 },
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 28, y: 8 }, // mais perto da lagoa, fechando o vazio no meio da grama
+      offset: { x: 18, y: 2 }, // mais perto da lagoa, fechando o vazio no meio da grama
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
