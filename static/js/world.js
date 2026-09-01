@@ -52,7 +52,7 @@
     30: {
       url: "/static/img/pond.png",
       baseWidth: 78, // reduzida (era 96) — estava proporcionalmente maior que na referência
-      offset: { x: -56, y: 10 }, // x recalculado (era -58, mudança mínima)
+      offset: { x: -48, y: -8 }, // x recalculado (era -58, mudança mínima)
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
