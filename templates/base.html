@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/crisis.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/account_created.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body class="has-crisis-widget">
@@ -245,6 +246,45 @@
     </div>
   </div>
   <!-- ================= Fim Widget de Apoio em Crise ================= -->
+
+  <!-- ===================== Modal "Conta criada!" ===================== -->
+  {% if just_registered %}
+  <div class="account-created-modal" id="account-created-modal">
+    <div class="account-created-backdrop" data-close-account-created></div>
+    <div class="account-created-card" role="dialog" aria-modal="true" aria-label="Conta criada com sucesso">
+      <div class="account-created-check" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12.5l5 5L20 7"/>
+        </svg>
+      </div>
+      <h3>Conta criada!</h3>
+      <p>Sua conta foi criada com sucesso.</p>
+      <button type="button" class="account-created-btn" data-close-account-created>Continuar</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var modal = document.getElementById("account-created-modal");
+      if (!modal) return;
+      document.body.classList.add("troca-open"); // reaproveita a trava de scroll já existente
+      function close() {
+        modal.remove();
+        document.body.classList.remove("troca-open");
+      }
+      modal.addEventListener("click", function (e) {
+        if (e.target.closest("[data-close-account-created]")) close();
+      });
+      document.addEventListener("keydown", function onKey(e) {
+        if (e.key === "Escape") {
+          close();
+          document.removeEventListener("keydown", onKey);
+        }
+      });
+    })();
+  </script>
+  {% endif %}
+  <!-- ================= Fim Modal "Conta criada!" ================= -->
 
   <script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
