@@ -43,7 +43,7 @@ const ELEMENT_SLOTS = {
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: 0, y: -42 },
+      offset: { x: 0, y: -37 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
@@ -57,14 +57,14 @@ const ELEMENT_SLOTS = {
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 70, y: 25 }, // mais perto da lagoa, fechando o vazio no meio da grama
+      offset: { x: 58, y: 21 }, // mais perto da lagoa, fechando o vazio no meio da grama
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
-      offset: { x: 122, y: -18 },
+      offset: { x: 127, y: -15 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +73,7 @@ const ELEMENT_SLOTS = {
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      offset: { x: -122, y: -18 },
+      offset: { x: -133, y: -17 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
