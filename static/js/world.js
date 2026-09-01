@@ -62,7 +62,7 @@
       // x recalculado: mais à direita, pra ficar simétrico à lagoa em
       // relação ao eixo da casa (casa em -2, lagoa a -54 dela; banco
       // agora a +54 dela, era só +42)
-      offset: { x: 40, y: -16 },
+      offset: { x: 40, y: -10 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
