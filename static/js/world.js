@@ -43,28 +43,33 @@
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: -38, y: -60 },
+      // x recalculado por análise de pixel da referência: casa mais
+      // centralizada (era -38)
+      offset: { x: -2, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -58, y: -8 },
+      offset: { x: -56, y: -8 }, // x recalculado (era -58, mudança mínima)
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 8, y: -23 }, // mais perto da lagoa, fechando o vazio no meio da grama
+      baseWidth: 38, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
+      // x recalculado por análise de pixel da referência: mais à direita,
+      // sob a casa (era 8)
+      offset: { x: 40, y: -23 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
-      offset: { x: 135, y: -6 },
+      // x recalculado por análise de pixel da referência (era 135)
+      offset: { x: 118, y: -6 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +78,8 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
-      offset: { x: -135, y: -18 },
+      // x recalculado por análise de pixel da referência (era -135)
+      offset: { x: -81, y: -18 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
