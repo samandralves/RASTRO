@@ -56,15 +56,15 @@ const ELEMENT_SLOTS = {
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 70, // levemente maior ainda (era 48 → 65 → 70)
+      baseWidth: 76, // um último ajuste pra cima (era 48 → 65 → 70 → 76)
       offset: { x: 33, y: 4 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
-      baseWidth: 75, // recuado — 85 tinha ficado grande demais (era 68 → 85 → 75)
-      offset: { x: 134, y: -17 }, // recuado — 148 estava quase saindo da ilha
+      baseWidth: 68, // recuo fino — bem próximo do valor original (era 68 → 85 → 75 → 68)
+      offset: { x: 132, y: -17 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -72,8 +72,8 @@ const ELEMENT_SLOTS = {
     // espelhada pro outro lado da ilha pra não sobrepor a primeira.
     100: {
       url: "/static/img/arvore_roxa.png",
-      baseWidth: 96, // recuado — 108 tinha ficado grande demais (era 88 → 108 → 96)
-      offset: { x: -140, y: -19 }, // recuado — -152 estava quase saindo da ilha
+      baseWidth: 86, // recuo fino (era 88 → 108 → 96 → 86)
+      offset: { x: -138, y: -19 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
