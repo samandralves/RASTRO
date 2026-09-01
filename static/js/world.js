@@ -52,13 +52,13 @@
     30: {
       url: "/static/img/pond.png",
       baseWidth: 78, // reduzida (era 96) — estava proporcionalmente maior que na referência
-      offset: { x: -48, y: -8 }, // x recalculado (era -58, mudança mínima)
+      offset: { x: -40, y: -8 }, // x recalculado (era -58, mudança mínima)
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
-      baseWidth: 60, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
+      baseWidth: 48, // reduzido (era 48) — banco menor, mais proporcional ao resto da cena
       // x recalculado: mais à direita, pra ficar simétrico à lagoa em
       // relação ao eixo da casa (casa em -2, lagoa a -54 dela; banco
       // agora a +54 dela, era só +42)
