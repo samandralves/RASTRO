@@ -64,7 +64,9 @@
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 78,
-      offset: { x: 24, y: -58 },
+      // mais perto da borda direita da ilha, sem colar nela — altura (y)
+      // mantida igual, só o x aumentou
+      offset: { x: 135, y: -6 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +75,9 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 78,
-      offset: { x: -28, y: -56 },
+      // mais perto da borda esquerda da ilha, sem colar nela — altura (y)
+      // mantida igual, só o x aumentou (em módulo)
+      offset: { x: -135, y: -18 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
