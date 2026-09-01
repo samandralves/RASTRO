@@ -43,30 +43,32 @@
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: -12, y: -60 },
+      // casa centralizada, principal foco da ilha
+      offset: { x: 0, y: -58 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
     30: {
       url: "/static/img/pond.png",
       baseWidth: 96,
-      offset: { x: -58, y: -8 },
+      // lago na parte frontal esquerda da casa, com espaçamento maior
+      offset: { x: -95, y: 18 },
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
     },
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 17, y: -23 }, // um pouco mais pra baixo (era y: -30)
+      // banco na parte frontal direita da casa, espelhando o lago
+      offset: { x: 95, y: 18 },
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 78,
-      // mais perto da borda direita da ilha, sem colar nela — altura (y)
-      // mantida igual, só o x aumentou
-      offset: { x: 135, y: -6 },
+      // lado direito da ilha, próxima à borda, espelhando a árvore roxa
+      offset: { x: 155, y: -8 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -75,9 +77,8 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 78,
-      // mais perto da borda esquerda da ilha, sem colar nela — altura (y)
-      // mantida igual, só o x aumentou (em módulo)
-      offset: { x: -135, y: -18 },
+      // lado esquerdo da ilha, próxima à borda, espelhando a árvore azul
+      offset: { x: -155, y: -8 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
