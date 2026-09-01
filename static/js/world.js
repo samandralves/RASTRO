@@ -39,28 +39,34 @@
   // rastro_data.WORLD_ELEMENTS (a chave é o custo em pontos). Quem ainda
   // não foi conquistado aparece apagado e pode ser obtido com pontos.
   // Sem `url`, o elemento é desenhado a partir do próprio emoji.
- const ELEMENT_SLOTS = {
+const ELEMENT_SLOTS = {
+
   0: { // Casa
-    offset: { x: 0, y: -75 },      // sobe um pouco e fica realmente centralizada
+    offset: { x: 0, y: -55 },
+    baseWidth: 100,
   },
 
   30: { // Lago
-    offset: { x: -105, y: 28 },    // um pouco mais para esquerda e para frente
+    offset: { x: -82, y: 20 },
+    baseWidth: 98,
   },
 
   50: { // Banco
-    offset: { x: 88, y: 32 },      // ligeiramente mais baixo que o lago
+    offset: { x: 72, y: 22 },
+    baseWidth: 46,
   },
 
   75: { // Árvore Azul
-    offset: { x: 165, y: -5 },     // direita, próxima da borda
+    offset: { x: 125, y: -12 },
+    baseWidth: 80,
   },
 
   100: { // Árvore Roxa
-    offset: { x: -165, y: -5 },    // espelhada
+    offset: { x: -125, y: -12 },
+    baseWidth: 80,
   }
-};
 
+};
   // Texto fixo de cada balão (visual de referência do mundo). Não depende
   // do `label`/`message` que vêm do servidor — é sempre este texto, pro
   // item aparecer ou não (bloqueado ou não).
