@@ -12,7 +12,7 @@ services/, as tabelas em models.py e o conteúdo fixo em data.py.
     flask --app app init-db  cria as tabelas
 """
 
-from flask import Flask
+from flask import Flask, session
 
 import cli
 import routes
@@ -28,11 +28,18 @@ def create_app(config_object=Config):
     db.init_app(app)
     routes.register(app)
     cli.register(app)
+
+    @app.context_processor
+    def inject_just_registered():
+        # consome a flag uma única vez: some da sessão assim que a primeira
+        # página é renderizada depois do cadastro (ver routes/auth.py),
+        # então o modal "Conta criada!" nunca reaparece num refresh.
+        return {"just_registered": session.pop("just_registered", False)}
+
     return app
 
 
 app = create_app()
-
 
 if __name__ == "__main__":
     app.run(debug=True)
