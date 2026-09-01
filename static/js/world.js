@@ -51,7 +51,7 @@
     },
     30: {
       url: "/static/img/pond.png",
-      baseWidth: 96,
+      baseWidth: 78, // reduzida (era 96) — estava proporcionalmente maior que na referência
       offset: { x: -56, y: -8 }, // x recalculado (era -58, mudança mínima)
       anchor: { x: 0.5, y: 0.62 },
       idle: "shimmer",
@@ -68,7 +68,7 @@
     },
     75: {
       url: "/static/img/arvore_azul.png",
-      baseWidth: 68, // um pouco menor que a roxa — leitura de "mais ao fundo"
+      baseWidth: 74, // menos diferença da roxa (era 68) — na referência elas são mais parecidas em tamanho
       // x recalculado por análise de pixel da referência (era 135)
       offset: { x: 118, y: -6 },
       anchor: { x: 0.5, y: 1 },
@@ -78,7 +78,7 @@
     // espelhada pro outro lado da ilha pra não sobrepor a primeira.
     100: {
       url: "/static/img/arvore_roxa.png",
-      baseWidth: 88, // um pouco maior que a azul — leitura de "mais em primeiro plano"
+      baseWidth: 82, // menos diferença da azul (era 88)
       // x recalculado (era -81, mas encostava na lagoa) — calibrado por
       // pixel direto entre dois screenshots reais do site pra abrir ~45px
       // de folga da borda da lagoa
