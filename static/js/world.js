@@ -70,7 +70,7 @@
       url: "/static/img/arvore_azul.png",
       baseWidth: 74, // menos diferença da roxa (era 68) — na referência elas são mais parecidas em tamanho
       // x recalculado por análise de pixel da referência (era 135)
-      offset: { x: 118, y: -60 },
+      offset: { x: 96, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
