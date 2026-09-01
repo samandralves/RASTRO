@@ -64,7 +64,7 @@
     75: {
       url: "/static/img/arvore_azul.png",
       baseWidth: 78,
-      offset: { x: 550, y: 330 },
+      offset: { x: 24, y: -58 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -73,7 +73,7 @@
     100: {
       url: "/static/img/arvore_roxa.png",
       baseWidth: 78,
-      offset: { x: 96, y: 306 },
+      offset: { x: -28, y: -56 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -153,12 +153,30 @@
       this.app.ticker.add((delta) => this._tick(delta));
 
       this._layout();
-      window.addEventListener("resize", () => this._layout());
+      // guarda a referência pra poder remover no destroy() — sem isso,
+      // cada init() novo (ex: troca de aba) empilha mais um listener e
+      // pode disputar o mesmo container com um engine "fantasma"
+      this._onResize = () => this._layout();
+      window.addEventListener("resize", this._onResize);
 
       this.ready = true;
       // sempre esconde o loading no final, mesmo se alguma imagem falhou —
       // assim a cena nunca fica travada em "Preparando seu mundo..."
       this._hideLoading();
+    }
+
+    /** Desliga o engine por completo: ticker, listener de resize e o
+     * canvas Pixi. Precisa ser chamado antes de criar uma nova WorldEngine
+     * no mesmo container (ex: ao trocar de aba/re-render da página),
+     * senão sobra um canvas "fantasma" preso ao DOM antigo e a cena nova
+     * pode nunca aparecer. */
+    destroy() {
+      if (this._onResize) window.removeEventListener("resize", this._onResize);
+      try {
+        this.app.destroy(true, { children: true, texture: true, baseTexture: true });
+      } catch (err) {
+        console.warn("[world] erro ao destruir engine anterior:", err);
+      }
     }
 
     /** Atualiza a cena com um estado novo vindo do servidor. */
@@ -617,7 +635,23 @@
     init() {
       const stage = document.getElementById("world-stage-pixi");
       const modal = document.getElementById("world-modal");
-      if (!stage || !modal) return;
+      if (!stage || !modal) {
+        // antes isso retornava em silêncio — se essa função rodar antes
+        // do DOM estar pronto, ou numa aba/rota que não tem esses
+        // elementos, ninguém saberia por que o mundo não apareceu
+        console.warn(
+          "[world] RastroWorld.init() chamado sem #world-stage-pixi ou #world-modal no DOM — nada foi desenhado."
+        );
+        return;
+      }
+
+      // se já existir um engine de uma chamada anterior (ex: troca de
+      // aba Meu Mundo/Mundo Real chamando init() de novo), desliga ele
+      // primeiro — evita canvas duplicado/fantasma disputando o container
+      if (this.engine) {
+        this.engine.destroy();
+        this.engine = null;
+      }
 
       this.modal = modal;
       this.emojiEl = document.getElementById("world-modal-emoji");
