@@ -43,7 +43,7 @@
     0: {
       url: "/static/img/house.png",
       baseWidth: 95,
-      offset: { x: -38, y: -60 },
+      offset: { x: -45, y: -60 },
       anchor: { x: 0.5, y: 1 },
       idle: "smoke",
     },
