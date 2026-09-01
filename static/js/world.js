@@ -57,7 +57,7 @@ const ELEMENT_SLOTS = {
     50: {
       url: "/static/img/bench_recortado.png",
       baseWidth: 48, // mais ~10% menor (era 53)
-      offset: { x: 72, y: 22 },, // mais perto da lagoa, fechando o vazio no meio da grama
+      offset: { x: 72, y: 22 }, // mais perto da lagoa, fechando o vazio no meio da grama
       anchor: { x: 0.5, y: 0.78 },
       idle: null,
     },
