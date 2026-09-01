@@ -71,10 +71,12 @@ def cadastro():
 
     # marca do primeiro passo, já "de fábrica" — espelha o protótipo original
     db.session.add(WorldItem(user_id=user.id, cost=0))
-
     db.session.commit()
 
     session["user_id"] = user.id
+    # sinaliza pra próxima página renderizada mostrar o modal "Conta criada!"
+    # (consumido uma única vez pelo context_processor em app.py)
+    session["just_registered"] = True
     return redirect(url_for("main.home"))
 
 
