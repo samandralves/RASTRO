@@ -70,7 +70,7 @@
       url: "/static/img/arvore_azul.png",
       baseWidth: 74, // menos diferença da roxa (era 68) — na referência elas são mais parecidas em tamanho
       // x recalculado por análise de pixel da referência (era 135)
-      offset: { x: 118, y: -6 },
+      offset: { x: 118, y: 50 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
@@ -82,7 +82,7 @@
       // x recalculado (era -81, mas encostava na lagoa) — calibrado por
       // pixel direto entre dois screenshots reais do site pra abrir ~45px
       // de folga da borda da lagoa
-      offset: { x: -104, y: -18 },
+      offset: { x: -104, y: 55 },
       anchor: { x: 0.5, y: 1 },
       idle: "sway",
     },
