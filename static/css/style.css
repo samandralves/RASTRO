@@ -269,7 +269,9 @@ body{
   border:1px solid var(--border);
   border-radius:13px;
   box-shadow:var(--shadow);
-  backdrop-filter:blur(16px)
+  backdrop-filter:blur(16px);
+  overflow-wrap:anywhere;
+  word-break:break-word
 }
 
 .dash-card{
@@ -2091,7 +2093,9 @@ body{
 .volunteer-conversation-grid{display:grid;gap:16px}
 .volunteer-conversation{
   border:1px solid var(--border);border-radius:14px;padding:16px;background:rgba(8,31,52,.72);
-  display:grid;gap:12px
+  display:grid;gap:12px;
+  min-width:0;
+  overflow-wrap:anywhere;word-break:break-word
 }
 .volunteer-conv-log{max-height:280px}
 .volunteer-conv-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
@@ -2135,11 +2139,11 @@ body{
 .volunteer-ticket.critical{border-color:rgba(255,110,110,.4)}
 .volunteer-ticket h3{font:600 14px "Space Grotesk",sans-serif;margin-bottom:7px}
 .volunteer-ticket .urgency{font-size:8px;letter-spacing:1px;color:var(--sun);text-transform:uppercase}
-.volunteer-ticket .description{font-size:11px;line-height:1.6;color:#dce5f5;margin:10px 0 14px}
+.volunteer-ticket .description{font-size:11px;line-height:1.6;color:#dce5f5;margin:10px 0 14px;overflow-wrap:anywhere;word-break:break-word}
 .volunteer-close-form{display:grid;gap:8px}
 .volunteer-history{margin-top:26px}
-.volunteer-history table{width:100%;border-collapse:collapse;font-size:10px}
-.volunteer-history th,.volunteer-history td{padding:9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.volunteer-history table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed}
+.volunteer-history th,.volunteer-history td{padding:9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:800px){
   .volunteer-ticket-grid{grid-template-columns:1fr}
   .interest-grid{grid-template-columns:repeat(2,1fr)}
