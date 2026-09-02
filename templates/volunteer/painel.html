@@ -58,7 +58,7 @@
             {% endfor %}
           </div>
           <div class="chat-input-row">
-            <input class="chat-input conv-input" id="conv-input-{{ t.id }}" placeholder="Responder..." autocomplete="off">
+            <textarea class="chat-input conv-input" id="conv-input-{{ t.id }}" placeholder="Responder..." autocomplete="off" rows="1"></textarea>
             <button class="send-btn conv-send" data-ticket-id="{{ t.id }}">Enviar</button>
           </div>
         </div>
