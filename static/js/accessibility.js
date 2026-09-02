@@ -150,10 +150,20 @@
      https://www.gov.br/governodigital/pt-br/vlibras
   ------------------------------------------------------------------------- */
   function loadVLibras() {
+    ensureVLibrasWrapper();
     if (document.getElementById("vlibras-script")) {
-      if (window.VLibras && !document.querySelector(".vw")) initVLibrasWidget();
+      if (window.VLibras) initVLibrasWidget();
       return;
     }
+    const script = document.createElement("script");
+    script.id = "vlibras-script";
+    script.src = "https://vlibras.gov.br/app/vlibras-plugin.js";
+    script.onload = initVLibrasWidget;
+    document.body.appendChild(script);
+  }
+
+  function ensureVLibrasWrapper() {
+    if (document.getElementById("vlibras-wrapper")) return;
     const wrapper = document.createElement("div");
     wrapper.setAttribute("vw", "");
     wrapper.className = "enabled";
@@ -162,12 +172,6 @@
       '<div vw-access-button class="active"></div>' +
       '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
     document.body.appendChild(wrapper);
-
-    const script = document.createElement("script");
-    script.id = "vlibras-script";
-    script.src = "https://vlibras.gov.br/app/vlibras-plugin.js";
-    script.onload = initVLibrasWidget;
-    document.body.appendChild(script);
   }
 
   function initVLibrasWidget() {
