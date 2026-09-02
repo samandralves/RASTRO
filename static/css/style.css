@@ -281,6 +281,10 @@ body{
   overflow:hidden
 }
 
+.secret-side-card{
+  padding:22px 20px
+}
+
 .dash-card:before{
   content:"";
   position:absolute;
