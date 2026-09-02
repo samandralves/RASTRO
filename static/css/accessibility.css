@@ -191,6 +191,17 @@ html[data-a11y-spacing="on"] span{
   word-spacing:.08em !important;
 }
 
+/* Rede de segurança pro VLibras: o widget oficial às vezes move o próprio
+   botão pra fora da nossa wrapper (direto pro <body>), então garantimos que
+   ele some de verdade quando o usuário desativa, não importa onde ele esteja
+   no documento. */
+html[data-a11y-vlibras="off"] [vw],
+html[data-a11y-vlibras="off"] [vw-access-button],
+html[data-a11y-vlibras="off"] [vw-plugin-wrapper],
+html[data-a11y-vlibras="off"] #vlibras-wrapper{
+  display:none !important;
+}
+
 /* Marca visual de trecho sendo lido em voz alta */
 .a11y-reading{
   outline:2px solid var(--brand,#4fe0b3);
