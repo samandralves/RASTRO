@@ -522,7 +522,8 @@ body{
   gap:9px;
   min-height:215px;
   max-height:390px;
-  overflow:auto;
+  overflow-y:auto;
+  overflow-x:hidden;
   padding:2px 3px
 }
 
@@ -531,7 +532,11 @@ body{
   padding:10px 13px;
   border-radius:13px;
   font-size:11px;
-  line-height:1.55
+  line-height:1.55;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  white-space:pre-wrap;
+  box-sizing:border-box
 }
 
 .bubble.rastro{
