@@ -1,5 +1,14 @@
 /* RASTRO — interações client-side, sem frameworks */
 
+/* campos de mensagem viraram <textarea> pra quebrar linha em vez de estourar a largura;
+   essa função deixa a caixa crescer conforme o usuário digita (até um limite) e volta ao
+   tamanho normal quando ela é limpa */
+function autoGrowInput(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 110) + "px";
+}
+
 /* ---------------- HOME: check-in de humor ---------------- */
 const RastroHome = {
   init() {
@@ -126,13 +135,18 @@ const RastroTalk = {
       if (!text) return;
       addBubble(text, "user");
       input.value = "";
+      autoGrowInput(input);
       sendToServer(text);
     }
 
     sendBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") send();
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
     });
+    input.addEventListener("input", () => autoGrowInput(input));
   },
 };
 
@@ -321,6 +335,7 @@ const RastroVolunteer = {
       if (!text) return;
       sending = true;
       input.value = "";
+      autoGrowInput(input);
       addBubble(text, "usuario");
 
       try {
@@ -337,8 +352,12 @@ const RastroVolunteer = {
     if (sendBtn) sendBtn.addEventListener("click", send);
     if (input) {
       input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") send();
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
       });
+      input.addEventListener("input", () => autoGrowInput(input));
     }
 
     function startPolling() {
@@ -421,6 +440,7 @@ const RastroVolunteerPanel = {
         const text = input.value.trim();
         if (!text) return;
         input.value = "";
+        autoGrowInput(input);
         addBubble(text, "voluntario");
         await fetch(`/voluntario/tickets/${ticketId}/mensagem`, {
           method: "POST",
@@ -432,8 +452,12 @@ const RastroVolunteerPanel = {
       if (sendBtn) sendBtn.addEventListener("click", send);
       if (input) {
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") send();
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            send();
+          }
         });
+        input.addEventListener("input", () => autoGrowInput(input));
       }
 
       setInterval(async () => {
