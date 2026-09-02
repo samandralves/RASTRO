@@ -149,54 +149,13 @@
 
   /* ---------------- VLibras (widget oficial, gratuito) ------------------
      https://www.gov.br/governodigital/pt-br/vlibras
-
-     IMPORTANTE: o script oficial do VLibras guarda referência interna aos
-     elementos [vw] que ele mesmo cria. Se a gente os REMOVE do DOM, o
-     widget tenta se "curar" e reinjeta pedaços em outro lugar da página
-     (às vezes soltos direto no <body>, fora do nosso wrapper) — por isso
-     ele reaparecia mesmo depois de "removido". A solução robusta é:
-       1) nunca apagar os nós do VLibras, só escondê-los via CSS;
-       2) vigiar o <body> com um MutationObserver e esconder na hora
-          qualquer coisa que ele tente inserir fora do nosso wrapper
-          enquanto a opção estiver desligada.
   ------------------------------------------------------------------------- */
-  const VLIBRAS_SELECTOR =
-    "#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper], " +
-    "iframe[src*='vlibras'], .vw-plugin-top-wrapper, .vpw";
-  let vlibrasObserver = null;
-
-  function hideVlibrasNode(el) {
-    if (el && el.style) el.style.setProperty("display", "none", "important");
-  }
-
-  function showVlibrasNode(el) {
-    if (el && el.style) el.style.removeProperty("display");
-  }
-
   function loadVLibras() {
-    if (vlibrasObserver) { vlibrasObserver.disconnect(); vlibrasObserver = null; }
-
-    let wrapper = document.getElementById("vlibras-wrapper");
-    if (!wrapper) {
-      wrapper = document.createElement("div");
-      wrapper.setAttribute("vw", "");
-      wrapper.className = "enabled";
-      wrapper.id = "vlibras-wrapper";
-      wrapper.innerHTML =
-        '<div vw-access-button class="active"></div>' +
-        '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
-      document.body.appendChild(wrapper);
-    }
-    showVlibrasNode(wrapper);
-    document.querySelectorAll(VLIBRAS_SELECTOR).forEach(showVlibrasNode);
-
+    ensureVLibrasWrapper();
     if (document.getElementById("vlibras-script")) {
-      // Script já baixado antes: o onload não dispara de novo, então só
-      // inicializamos se ainda não houver widget rodando sobre o wrapper.
-      if (window.VLibras && !wrapper.dataset.vlibrasInit) initVLibrasWidget();
+      if (window.VLibras) initVLibrasWidget();
       return;
     }
-
     const script = document.createElement("script");
     script.id = "vlibras-script";
     script.src = "https://vlibras.gov.br/app/vlibras-plugin.js";
@@ -204,34 +163,49 @@
     document.body.appendChild(script);
   }
 
+  function ensureVLibrasWrapper() {
+    if (document.getElementById("vlibras-wrapper")) return;
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("vw", "");
+    wrapper.className = "enabled";
+    wrapper.id = "vlibras-wrapper";
+    wrapper.innerHTML =
+      '<div vw-access-button class="active"></div>' +
+      '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
+    document.body.appendChild(wrapper);
+  }
+
   function initVLibrasWidget() {
     if (window.VLibras) {
       new window.VLibras.Widget("https://vlibras.gov.br/app");
-      const wrapper = document.getElementById("vlibras-wrapper");
-      if (wrapper) wrapper.dataset.vlibrasInit = "1";
     }
   }
 
-  function removeVLibras() {
-    // Só esconder — nunca remover do DOM (ver explicação acima).
-    document.querySelectorAll(VLIBRAS_SELECTOR).forEach(hideVlibrasNode);
+  /* O widget oficial controla a própria visibilidade com "style" inline
+     (às vezes com !important), então CSS sozinho não é confiável pra
+     escondê-lo, e ele também pode recriar/mover pedaços dele mesmo depois
+     de removidos. Por isso apagamos os nós na hora, e mantemos um
+     MutationObserver rodando: enquanto o Libras estiver desligado, qualquer
+     coisa que ele tentar recolocar no documento é removida imediatamente. */
+  function purgeVLibrasRemnants() {
+    document
+      .querySelectorAll("#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper]")
+      .forEach((el) => el.remove());
+  }
 
-    // Vigia o body: se o VLibras reinjetar algo novo (ex.: iframe do
-    // avatar aberto, popup) enquanto estiver desligado, escondemos na hora.
-    if (!vlibrasObserver) {
-      vlibrasObserver = new MutationObserver((mutations) => {
-        mutations.forEach((m) => {
-          m.addedNodes.forEach((node) => {
-            if (node.nodeType !== 1) return;
-            if (node.matches && node.matches(VLIBRAS_SELECTOR)) hideVlibrasNode(node);
-            if (node.querySelectorAll) {
-              node.querySelectorAll(VLIBRAS_SELECTOR).forEach(hideVlibrasNode);
-            }
-          });
-        });
-      });
-      vlibrasObserver.observe(document.body, { childList: true, subtree: true });
-    }
+  let vlibrasObserver = null;
+
+  function watchVLibras() {
+    if (vlibrasObserver) return;
+    vlibrasObserver = new MutationObserver(() => {
+      if (prefs.vlibras === "off") purgeVLibrasRemnants();
+    });
+    vlibrasObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function removeVLibras() {
+    purgeVLibrasRemnants();
+    // O <script> fica carregado (é leve) para reativar rápido, sem novo download.
   }
 
   /* ---------------- Init ---------------- */
@@ -240,6 +214,7 @@
     initSwitches();
     initReset();
     initSpeech();
+    watchVLibras();
     applyPrefs();
   });
 })();
