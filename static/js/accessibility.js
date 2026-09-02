@@ -41,6 +41,7 @@
     html.setAttribute("data-a11y-cursor", prefs.cursor);
     html.setAttribute("data-a11y-grayscale", prefs.grayscale);
     html.setAttribute("data-a11y-spacing", prefs.spacing);
+    html.setAttribute("data-a11y-vlibras", prefs.vlibras);
     syncSwitches();
     if (prefs.vlibras === "on") loadVLibras(); else removeVLibras();
   }
@@ -181,9 +182,14 @@
   }
 
   function removeVLibras() {
-    const wrapper = document.getElementById("vlibras-wrapper");
-    if (wrapper) wrapper.remove();
-    // O script fica carregado (é leve) para reativar rápido, sem novo download.
+    // O widget oficial, depois de carregar, costuma mover o botão de dentro
+    // da #vlibras-wrapper direto pro <body> (fora da nossa div). Por isso,
+    // não basta apagar só a wrapper: procuramos qualquer resquício dele em
+    // qualquer lugar do documento.
+    document
+      .querySelectorAll("#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper]")
+      .forEach((el) => el.remove());
+    // O <script> fica carregado (é leve) para reativar rápido, sem novo download.
   }
 
   /* ---------------- Init ---------------- */
