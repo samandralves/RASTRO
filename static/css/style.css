@@ -558,6 +558,7 @@ body{
 
 .chat-input-row{
   display:flex;
+  align-items:flex-end;
   gap:7px;
   margin-top:10px
 }
@@ -569,7 +570,16 @@ body{
   background:rgba(2,15,31,.65);
   padding:10px 12px;
   color:#fff;
-  font:11px Inter,sans-serif
+  font:11px Inter,sans-serif;
+  resize:none;
+  overflow-y:auto;
+  max-height:110px;
+  min-height:38px;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  white-space:pre-wrap;
+  box-sizing:border-box
 }
 
 .chat-input::placeholder{color:#667895}
