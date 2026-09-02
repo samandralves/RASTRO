@@ -20,6 +20,15 @@
   font-display:swap;
 }
 
+/* Reforço: se o script do VLibras deixar algum resíduo fora do
+   #vlibras-wrapper depois de desativado, isso garante que ele suma
+   visualmente mesmo assim. */
+html[data-a11y-vlibras="off"] #vlibras-wrapper,
+html[data-a11y-vlibras="off"] [vw],
+html[data-a11y-vlibras="off"] .vpw{
+  display:none !important
+}
+
 /* ---------- Botão flutuante ---------- */
 .a11y-toggle{
   position:fixed;
@@ -189,17 +198,6 @@ html[data-a11y-spacing="on"] span{
   line-height:1.8 !important;
   letter-spacing:.03em !important;
   word-spacing:.08em !important;
-}
-
-/* Rede de segurança pro VLibras: o widget oficial às vezes move o próprio
-   botão pra fora da nossa wrapper (direto pro <body>), então garantimos que
-   ele some de verdade quando o usuário desativa, não importa onde ele esteja
-   no documento. */
-html[data-a11y-vlibras="off"] [vw],
-html[data-a11y-vlibras="off"] [vw-access-button],
-html[data-a11y-vlibras="off"] [vw-plugin-wrapper],
-html[data-a11y-vlibras="off"] #vlibras-wrapper{
-  display:none !important;
 }
 
 /* Marca visual de trecho sendo lido em voz alta */
