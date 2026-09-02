@@ -149,11 +149,36 @@
 
   /* ---------------- VLibras (widget oficial, gratuito) ------------------
      https://www.gov.br/governodigital/pt-br/vlibras
+
+     IMPORTANTE: o script oficial do VLibras guarda referência interna aos
+     elementos [vw] que ele mesmo cria. Se a gente os REMOVE do DOM, o
+     widget tenta se "curar" e reinjeta pedaços em outro lugar da página
+     (às vezes soltos direto no <body>, fora do nosso wrapper) — por isso
+     ele reaparecia mesmo depois de "removido". A solução robusta é:
+       1) nunca apagar os nós do VLibras, só escondê-los via CSS;
+       2) vigiar o <body> com um MutationObserver e esconder na hora
+          qualquer coisa que ele tente inserir fora do nosso wrapper
+          enquanto a opção estiver desligada.
   ------------------------------------------------------------------------- */
+  const VLIBRAS_SELECTOR =
+    "#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper], " +
+    "iframe[src*='vlibras'], .vw-plugin-top-wrapper, .vpw";
+  let vlibrasObserver = null;
+
+  function hideVlibrasNode(el) {
+    if (el && el.style) el.style.setProperty("display", "none", "important");
+  }
+
+  function showVlibrasNode(el) {
+    if (el && el.style) el.style.removeProperty("display");
+  }
+
   function loadVLibras() {
-    // Sempre recria o wrapper (removeVLibras apaga o anterior por completo).
-    if (!document.getElementById("vlibras-wrapper")) {
-      const wrapper = document.createElement("div");
+    if (vlibrasObserver) { vlibrasObserver.disconnect(); vlibrasObserver = null; }
+
+    let wrapper = document.getElementById("vlibras-wrapper");
+    if (!wrapper) {
+      wrapper = document.createElement("div");
       wrapper.setAttribute("vw", "");
       wrapper.className = "enabled";
       wrapper.id = "vlibras-wrapper";
@@ -162,11 +187,13 @@
         '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
       document.body.appendChild(wrapper);
     }
+    showVlibrasNode(wrapper);
+    document.querySelectorAll(VLIBRAS_SELECTOR).forEach(showVlibrasNode);
 
     if (document.getElementById("vlibras-script")) {
-      // Script já baixado antes: o onload não dispara de novo, então
-      // inicializamos manualmente sobre o wrapper recém-criado.
-      if (window.VLibras) initVLibrasWidget();
+      // Script já baixado antes: o onload não dispara de novo, então só
+      // inicializamos se ainda não houver widget rodando sobre o wrapper.
+      if (window.VLibras && !wrapper.dataset.vlibrasInit) initVLibrasWidget();
       return;
     }
 
@@ -180,21 +207,31 @@
   function initVLibrasWidget() {
     if (window.VLibras) {
       new window.VLibras.Widget("https://vlibras.gov.br/app");
+      const wrapper = document.getElementById("vlibras-wrapper");
+      if (wrapper) wrapper.dataset.vlibrasInit = "1";
     }
   }
 
   function removeVLibras() {
-    // O próprio script oficial do VLibras costuma injetar elementos extras
-    // fora do nosso #vlibras-wrapper (ícone de acesso, iframe do avatar,
-    // popup de mensagens). Remover só o wrapper não é suficiente — por isso
-    // caçamos qualquer coisa com o atributo/prefixo "vw" e removemos tudo.
-    document.querySelectorAll(
-      "#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper], " +
-      "iframe[src*='vlibras'], .vw-plugin-top-wrapper, .vpw"
-    ).forEach((el) => el.remove());
-    // O <script> em si fica carregado (é leve) para reativar rápido, sem
-    // novo download — mas a instância do Widget não sobrevive à remoção do
-    // DOM, então na próxima ativação ela é recriada do zero (ver loadVLibras).
+    // Só esconder — nunca remover do DOM (ver explicação acima).
+    document.querySelectorAll(VLIBRAS_SELECTOR).forEach(hideVlibrasNode);
+
+    // Vigia o body: se o VLibras reinjetar algo novo (ex.: iframe do
+    // avatar aberto, popup) enquanto estiver desligado, escondemos na hora.
+    if (!vlibrasObserver) {
+      vlibrasObserver = new MutationObserver((mutations) => {
+        mutations.forEach((m) => {
+          m.addedNodes.forEach((node) => {
+            if (node.nodeType !== 1) return;
+            if (node.matches && node.matches(VLIBRAS_SELECTOR)) hideVlibrasNode(node);
+            if (node.querySelectorAll) {
+              node.querySelectorAll(VLIBRAS_SELECTOR).forEach(hideVlibrasNode);
+            }
+          });
+        });
+      });
+      vlibrasObserver.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   /* ---------------- Init ---------------- */
