@@ -151,28 +151,30 @@
      https://www.gov.br/governodigital/pt-br/vlibras
   ------------------------------------------------------------------------- */
   function loadVLibras() {
-    ensureVLibrasWrapper();
+    // Sempre recria o wrapper (removeVLibras apaga o anterior por completo).
+    if (!document.getElementById("vlibras-wrapper")) {
+      const wrapper = document.createElement("div");
+      wrapper.setAttribute("vw", "");
+      wrapper.className = "enabled";
+      wrapper.id = "vlibras-wrapper";
+      wrapper.innerHTML =
+        '<div vw-access-button class="active"></div>' +
+        '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
+      document.body.appendChild(wrapper);
+    }
+
     if (document.getElementById("vlibras-script")) {
+      // Script já baixado antes: o onload não dispara de novo, então
+      // inicializamos manualmente sobre o wrapper recém-criado.
       if (window.VLibras) initVLibrasWidget();
       return;
     }
+
     const script = document.createElement("script");
     script.id = "vlibras-script";
     script.src = "https://vlibras.gov.br/app/vlibras-plugin.js";
     script.onload = initVLibrasWidget;
     document.body.appendChild(script);
-  }
-
-  function ensureVLibrasWrapper() {
-    if (document.getElementById("vlibras-wrapper")) return;
-    const wrapper = document.createElement("div");
-    wrapper.setAttribute("vw", "");
-    wrapper.className = "enabled";
-    wrapper.id = "vlibras-wrapper";
-    wrapper.innerHTML =
-      '<div vw-access-button class="active"></div>' +
-      '<div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>';
-    document.body.appendChild(wrapper);
   }
 
   function initVLibrasWidget() {
@@ -182,14 +184,17 @@
   }
 
   function removeVLibras() {
-    // O widget oficial, depois de carregar, costuma mover o botão de dentro
-    // da #vlibras-wrapper direto pro <body> (fora da nossa div). Por isso,
-    // não basta apagar só a wrapper: procuramos qualquer resquício dele em
-    // qualquer lugar do documento.
-    document
-      .querySelectorAll("#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper]")
-      .forEach((el) => el.remove());
-    // O <script> fica carregado (é leve) para reativar rápido, sem novo download.
+    // O próprio script oficial do VLibras costuma injetar elementos extras
+    // fora do nosso #vlibras-wrapper (ícone de acesso, iframe do avatar,
+    // popup de mensagens). Remover só o wrapper não é suficiente — por isso
+    // caçamos qualquer coisa com o atributo/prefixo "vw" e removemos tudo.
+    document.querySelectorAll(
+      "#vlibras-wrapper, [vw], [vw-access-button], [vw-plugin-wrapper], " +
+      "iframe[src*='vlibras'], .vw-plugin-top-wrapper, .vpw"
+    ).forEach((el) => el.remove());
+    // O <script> em si fica carregado (é leve) para reativar rápido, sem
+    // novo download — mas a instância do Widget não sobrevive à remoção do
+    // DOM, então na próxima ativação ela é recriada do zero (ver loadVLibras).
   }
 
   /* ---------------- Init ---------------- */
