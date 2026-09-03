@@ -464,6 +464,20 @@ body{
   outline-offset:2px
 }
 
+/* variante fixa, grudada no canto superior esquerdo (encostada na sidebar),
+   usada nas páginas do World a pedido do usuário */
+.back-link.floating{
+  position:fixed;
+  top:24px;
+  left:128px;
+  z-index:50;
+  margin-bottom:0
+}
+
+@media (max-width:850px){
+  .back-link.floating{top:16px;left:14px}
+}
+
 .talk-layout,
 .onepct-layout,
 .world-layout,
