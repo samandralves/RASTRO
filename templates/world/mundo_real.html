@@ -4,6 +4,7 @@
 {% block content %}
 <section class="screen world-real-screen">
   <div class="screen-heading">
+    <a href="{{ url_for('main.home') }}" class="back-link">← Voltar para o menu</a>
     <div class="world-heading-row">
       <div><p class="eyebrow">WORLD · MUNDO REAL</p><h1>Tem um lugar para você lá fora.</h1><p>Locais de Belo Horizonte selecionados a partir dos seus interesses.</p></div>
       <a class="outline-btn" href="{{ url_for('world.real_questionario') }}">Editar interesses</a>
