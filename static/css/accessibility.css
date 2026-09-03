@@ -1,0 +1,244 @@
+/* ==========================================================================
+   RASTRO — Widget de Acessibilidade
+   Recursos gratuitos: leitura em voz alta, OpenDyslexic,
+   VLibras, sublinhar links, cursor ampliado, escala de cinza.
+   ========================================================================== */
+
+/* Fonte para dislexia (OpenDyslexic) — carregada via CDN gratuito */
+@font-face{
+  font-family:"OpenDyslexic";
+  src:url("https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Regular.otf") format("opentype");
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:"OpenDyslexic";
+  src:url("https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Bold.otf") format("opentype");
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+/* ---------- Botão flutuante ---------- */
+.a11y-toggle{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:9999;
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  border:1px solid var(--border,rgba(143,192,224,.16));
+  background:var(--brand,#4fe0b3);
+  color:#03091a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  font-size:24px;
+  line-height:1;
+  transition:transform .15s ease;
+}
+.a11y-toggle:hover{transform:scale(1.06)}
+.a11y-toggle:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+.a11y-toggle-icon{
+  width:60%;
+  height:60%;
+  object-fit:contain;
+  pointer-events:none;
+}
+
+/* Também pode ser usado como item de menu (ver instruções) */
+.nav-item.a11y-nav-btn{
+  cursor:pointer;
+  background:none;
+  border:none;
+  font:inherit;
+  width:100%;
+  text-align:left;
+}
+
+/* ---------- Painel ---------- */
+.a11y-panel{
+  position:fixed;
+  right:20px;
+  bottom:84px;
+  z-index:9999;
+  width:300px;
+  max-width:calc(100vw - 40px);
+  max-height:70vh;
+  overflow-y:auto;
+  background:var(--panel,#0b203b);
+  border:1px solid var(--border,rgba(143,192,224,.16));
+  border-radius:16px;
+  box-shadow:var(--shadow,0 22px 70px rgba(0,0,0,.34));
+  padding:16px;
+  display:none;
+  flex-direction:column;
+  gap:10px;
+}
+.a11y-panel.open{display:flex}
+
+.a11y-panel h2{
+  font-size:15px;
+  color:var(--text,#f5f8ff);
+  margin-bottom:4px;
+}
+
+.a11y-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:var(--panel2,#102945);
+}
+.a11y-row span{
+  font-size:13px;
+  color:var(--text,#f5f8ff);
+}
+
+.a11y-btn-group{display:flex;gap:6px}
+.a11y-btn{
+  background:transparent;
+  border:1px solid var(--border,rgba(143,192,224,.16));
+  color:var(--text,#f5f8ff);
+  border-radius:8px;
+  width:32px;
+  height:32px;
+  cursor:pointer;
+  font-size:15px;
+}
+.a11y-btn:hover{background:rgba(255,255,255,.08)}
+.a11y-btn:focus-visible,
+.a11y-toggle-switch:focus-visible{outline:2px solid var(--brand,#4fe0b3);outline-offset:2px}
+
+.a11y-toggle-switch{
+  position:relative;
+  width:40px;
+  height:22px;
+  border-radius:999px;
+  background:rgba(255,255,255,.15);
+  border:none;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.a11y-toggle-switch::after{
+  content:"";
+  position:absolute;
+  top:2px;
+  left:2px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#fff;
+  transition:left .15s ease;
+}
+.a11y-toggle-switch[aria-pressed="true"]{background:var(--brand,#4fe0b3)}
+.a11y-toggle-switch[aria-pressed="true"]::after{left:20px}
+
+.a11y-reset{
+  margin-top:6px;
+  background:transparent;
+  border:1px solid var(--border,rgba(143,192,224,.16));
+  color:var(--muted,#91a0bf);
+  border-radius:10px;
+  padding:8px;
+  cursor:pointer;
+  font-size:13px;
+}
+.a11y-reset:hover{color:var(--text,#f5f8ff)}
+
+/* ==========================================================================
+   Estados aplicados ao <html> quando o usuário ativa cada recurso
+   ========================================================================== */
+
+/* Fonte para dislexia */
+html[data-a11y-dyslexic="on"] body,
+html[data-a11y-dyslexic="on"] input,
+html[data-a11y-dyslexic="on"] textarea,
+html[data-a11y-dyslexic="on"] button{
+  font-family:"OpenDyslexic",Inter,Arial,sans-serif !important;
+}
+
+/* Sublinhar links */
+html[data-a11y-underline="on"] a{
+  text-decoration:underline !important;
+  text-underline-offset:3px;
+}
+
+/* Cursor ampliado */
+html[data-a11y-cursor="on"],
+html[data-a11y-cursor="on"] *{
+  cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="1" d="M4 2l14 8-6 2 3 7-3 1-3-7-5 4z"/></svg>') 4 4, auto !important;
+}
+
+/* Escala de cinza */
+html[data-a11y-grayscale="on"]{filter:grayscale(1) !important}
+
+/* Espaçamento de texto ampliado (ajuda leitura) */
+html[data-a11y-spacing="on"] body,
+html[data-a11y-spacing="on"] p,
+html[data-a11y-spacing="on"] a,
+html[data-a11y-spacing="on"] span{
+  line-height:1.8 !important;
+  letter-spacing:.03em !important;
+  word-spacing:.08em !important;
+}
+
+/* Marca visual de trecho sendo lido em voz alta */
+.a11y-reading{
+  outline:2px solid var(--brand,#4fe0b3);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+/* No celular a .bottom-nav (barra "TALK/WORLD/1%/SECRET/Perfil") fica fixa
+   em bottom:8px com 64px de altura. Isso só existe em páginas logadas
+   (base.html) — a landing não tem essa barra, então aqui só ajustamos a
+   margem lateral; a elevação do botão fica nas regras com
+   body.has-crisis-widget mais abaixo. */
+@media (max-width:850px){
+  .a11y-toggle{right:14px}
+  .a11y-panel{right:14px}
+}
+
+@media (max-width:480px){
+  .a11y-panel{right:10px;left:10px;width:auto}
+  .a11y-toggle{right:14px}
+}
+
+/* Em páginas que têm a bottom-nav e o botão "Preciso de apoio" (empilhado
+   no mesmo canto, abaixo deste), o botão e o painel de acessibilidade
+   sobem para não ficar em cima desses elementos. */
+body.has-crisis-widget .a11y-toggle{bottom:84px}
+body.has-crisis-widget .a11y-panel{bottom:148px}
+
+@media (max-width:850px){
+  body.has-crisis-widget .a11y-toggle{bottom:148px}
+  body.has-crisis-widget .a11y-panel{bottom:212px}
+}
+@media (max-width:480px){
+  body.has-crisis-widget .a11y-panel{bottom:212px}
+  body.has-crisis-widget .a11y-toggle{bottom:148px}
+}
+
+/* ---------- VLibras ligado/desligado ----------
+   O plugin oficial cria #vlibras-access-wrapper (botão azul, dentro de um
+   shadow DOM) fora do #vlibras-wrapper, e só instancia o widget uma vez por
+   carregamento de página. Então alternamos por visibilidade, e não removendo
+   os nós — esconder o host esconde também o conteúdo do shadow DOM. */
+html[data-a11y-vlibras="off"] #vlibras-wrapper,
+html[data-a11y-vlibras="off"] #vlibras-access-wrapper,
+html[data-a11y-vlibras="off"] [vw],
+html[data-a11y-vlibras="off"] [vw-access-button],
+html[data-a11y-vlibras="off"] [vw-plugin-wrapper],
+html[data-a11y-vlibras="off"] .vw-plugin-top-wrapper,
+html[data-a11y-vlibras="off"] div[vp] {
+  display:none !important;
+}
