@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RASTRO — {% block title %}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/crisis.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/account_created.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="has-crisis-widget">
+  <canvas id="starfield"></canvas>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="{{ url_for('main.home') }}" class="brand" aria-label="Rastro — início">
+        <img src="{{ url_for('static', filename='img/logo-rastro.png') }}" alt="Rastro">
+      </a>
+
+      <nav class="side-nav" aria-label="Navegação principal">
+        <a href="{{ url_for('main.talk') }}" class="nav-item {{ 'active' if active=='talk' }}">
+          <span class="nav-symbol">◌</span><span>TALK</span>
+        </a>
+        <a href="{{ url_for('world.index') }}" class="nav-item {{ 'active' if active=='world' }}">
+          <span class="nav-symbol">◎</span><span>WORLD</span>
+        </a>
+        <a href="{{ url_for('main.onepct') }}" class="nav-item {{ 'active' if active=='onepct' }}">
+          <span class="nav-symbol one">1%</span><span>1%</span>
+        </a>
+        <a href="{{ url_for('main.secret') }}" class="nav-item {{ 'active' if active=='secret' }}">
+          <span class="nav-symbol">▣</span><span>SECRET</span>
+        </a>
+        <a href="{{ url_for('main.perfil') }}" class="nav-item {{ 'active' if active=='perfil' }}">
+          <span class="nav-symbol">♙</span><span>PERFIL</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-note">pequenos passos<br><strong>deixam rastros.</strong></div>
+        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout">Sair</a>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="mobile-topbar">
+        <a href="{{ url_for('main.home') }}" class="mobile-brand">
+          <img src="{{ url_for('static', filename='img/logo-rastro.png') }}" alt="Rastro">
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="mobile-logout">Sair</a>
+      </header>
+
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navegação móvel">
+    <a href="{{ url_for('main.talk') }}" class="{{ 'active' if active=='talk' }}"><span>◌</span>TALK</a>
+    <a href="{{ url_for('world.index') }}" class="{{ 'active' if active=='world' }}"><span>◎</span>WORLD</a>
+    <a href="{{ url_for('main.onepct') }}" class="{{ 'active' if active=='onepct' }}"><span class="one">1%</span>1%</a>
+    <a href="{{ url_for('main.secret') }}" class="{{ 'active' if active=='secret' }}"><span>▣</span>SECRET</a>
+    <a href="{{ url_for('main.perfil') }}" class="{{ 'active' if active=='perfil' }}"><span>♙</span>PERFIL</a>
+  </nav>
+
+  <!-- ===================== Widget de Acessibilidade ===================== -->
+  <button id="a11y-toggle" class="a11y-toggle" type="button"
+          aria-haspopup="true" aria-expanded="false" aria-controls="a11y-panel"
+          aria-label="Abrir menu de acessibilidade">
+    <img src="{{ url_for('static', filename='img/accessibility.png') }}" alt="" class="a11y-toggle-icon">
+  </button>
+
+  <div id="a11y-panel" class="a11y-panel" role="dialog" aria-label="Opções de acessibilidade">
+    <h2>Acessibilidade</h2>
+
+    <div class="a11y-row">
+      <span>Fonte para dislexia</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="dyslexic"
+              aria-pressed="false" aria-label="Ativar fonte OpenDyslexic"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Sublinhar links</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="underline"
+              aria-pressed="false" aria-label="Sublinhar links"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Cursor ampliado</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="cursor"
+              aria-pressed="false" aria-label="Ativar cursor ampliado"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Escala de cinza</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="grayscale"
+              aria-pressed="false" aria-label="Ativar escala de cinza"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Espaçamento de texto</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="spacing"
+              aria-pressed="false" aria-label="Aumentar espaçamento de texto"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>VLibras (Libras)</span>
+      <button class="a11y-toggle-switch" type="button" data-a11y-switch="vlibras"
+              aria-pressed="false" aria-label="Ativar tradutor de Libras"></button>
+    </div>
+
+    <div class="a11y-row">
+      <span>Ler página em voz alta</span>
+      <div class="a11y-btn-group">
+        <button id="a11y-speak" class="a11y-btn" type="button" aria-pressed="false" aria-label="Ler página em voz alta">▶</button>
+        <button id="a11y-speak-stop" class="a11y-btn" type="button" aria-label="Parar leitura">■</button>
+      </div>
+    </div>
+
+    <button id="a11y-reset" class="a11y-reset" type="button">Restaurar padrões</button>
+  </div>
+  <!-- =================== Fim Widget de Acessibilidade =================== -->
+
+  <!-- ===================== Widget de Apoio em Crise ===================== -->
+  <button id="crisis-toggle" class="crisis-toggle" type="button"
+          aria-haspopup="true" aria-expanded="false" aria-controls="crisis-panel"
+          aria-label="Abrir apoio para crise de ansiedade, pânico ou estresse">
+    <span class="crisis-toggle-icon" aria-hidden="true">◈</span>
+    <span>Preciso de apoio</span>
+  </button>
+
+  <div id="crisis-panel" class="crisis-panel" role="dialog" aria-label="Apoio em crise">
+    <div class="crisis-panel-head">
+      <h2>Você não está sozinho(a) agora</h2>
+      <p>Escolha o que mais se parece com o que você está sentindo. Isto não substitui atendimento profissional.</p>
+      <button id="crisis-close" class="crisis-panel-close" type="button" aria-label="Fechar apoio em crise">✕</button>
+    </div>
+
+    <div class="crisis-tabs" role="tablist" aria-label="Tipos de crise">
+      <button class="crisis-tab" type="button" data-tab="panico" role="tab" aria-selected="true">Pânico</button>
+      <button class="crisis-tab" type="button" data-tab="ansiedade" role="tab" aria-selected="false">Ansiedade</button>
+      <button class="crisis-tab" type="button" data-tab="situacional" role="tab" aria-selected="false">Crise aguda</button>
+      <button class="crisis-tab" type="button" data-tab="tept" role="tab" aria-selected="false">Flashback / TEPT</button>
+      <button class="crisis-tab" type="button" data-tab="contatos" role="tab" aria-selected="false">Contatos</button>
+    </div>
+
+    <div class="crisis-body">
+
+      <!-- Pânico -->
+      <div id="crisis-tab-panico" class="crisis-section active">
+        <h3>Ataque de pânico agora</h3>
+        <div id="crisis-breathe" class="crisis-breathe">
+          <div class="crisis-breathe-ring"><span>◈</span></div>
+          <p id="crisis-breathe-label" style="font-size:12px;color:var(--muted,#91a0bf);text-align:center">
+            Toque em começar quando estiver pronto(a).
+          </p>
+          <button id="crisis-breathe-btn" class="crisis-breathe-btn" type="button">Começar</button>
+        </div>
+        <ul class="crisis-steps">
+          <li><b>1.</b> Sente-se ou encoste-se em algo firme. Os pés no chão.</li>
+          <li><b>2.</b> Siga o círculo: inspire 4s, segure 4s, solte 6s.</li>
+          <li><b>3.</b> Lembre-se: um ataque de pânico é intenso, mas passa. Você já passou por isso antes.</li>
+        </ul>
+      </div>
+
+      <!-- Ansiedade -->
+      <div id="crisis-tab-ansiedade" class="crisis-section">
+        <h3>Ansiedade forte</h3>
+        <ul class="crisis-steps">
+          <li><b>1.</b> Dê nome ao que sente: "estou ansioso(a) agora" — isso já reduz a intensidade.</li>
+          <li><b>2.</b> Técnica 5-4-3-2-1: 5 coisas que você vê, 4 que ouve, 3 que pode tocar, 2 que cheira, 1 que saboreia.</li>
+          <li><b>3.</b> Molhe o rosto ou as mãos com água fria — ajuda a "resetar" o corpo.</li>
+          <li><b>4.</b> Escreva o pensamento que mais te incomoda numa frase curta. Ele fica menor no papel.</li>
+          <li><b>5.</b> Evite cafeína e telas por alguns minutos; abra uma janela se puder.</li>
+        </ul>
+      </div>
+
+      <!-- Crise situacional / estresse agudo -->
+      <div id="crisis-tab-situacional" class="crisis-section">
+        <h3>Crise situacional ou estresse agudo</h3>
+        <ul class="crisis-steps">
+          <li><b>1.</b> Primeiro, segurança: você está em um lugar seguro agora? Se não, mova-se para um.</li>
+          <li><b>2.</b> Uma coisa de cada vez. Não tente resolver tudo agora — só o próximo minuto.</li>
+          <li><b>3.</b> Avise alguém de confiança onde você está e o que está acontecendo, se possível.</li>
+          <li><b>4.</b> Beba água, sente-se e conte 10 respirações antes de qualquer decisão importante.</li>
+          <li><b>5.</b> Se envolver risco imediato à sua vida ou de outra pessoa, ligue 192 (SAMU) ou 190 (Polícia).</li>
+        </ul>
+      </div>
+
+      <!-- TEPT / flashback -->
+      <div id="crisis-tab-tept" class="crisis-section">
+        <h3>Flashback ou memória intrusiva</h3>
+        <ul class="crisis-steps">
+          <li><b>1.</b> Diga em voz alta: "Isso é uma memória. Agora é [ano atual], eu estou em [lugar]."</li>
+          <li><b>2.</b> Toque em algo com textura (tecido, parede, objeto) e descreva como ele é.</li>
+          <li><b>3.</b> Movimente o corpo: aperte as mãos, bata os pés no chão, mude de posição.</li>
+          <li><b>4.</b> Fale seu nome completo, a data de hoje e três coisas que estão perto de você.</li>
+          <li><b>5.</b> Depois que passar, procure um espaço tranquilo e, se puder, converse com seu terapeuta sobre o episódio.</li>
+        </ul>
+      </div>
+
+      <!-- Contatos -->
+      <div id="crisis-tab-contatos" class="crisis-section">
+        <h3>Linhas de apoio no Brasil</h3>
+        <div class="crisis-contacts">
+          <a class="crisis-contact" href="tel:188">
+            <span class="crisis-contact-name">
+              <strong>CVV — Centro de Valorização da Vida</strong>
+              <small>Apoio emocional, sigiloso, 24h, todos os dias</small>
+            </span>
+            <span class="crisis-contact-num">188</span>
+          </a>
+          <a class="crisis-contact" href="https://www.cvv.org.br/chat/" target="_blank" rel="noopener">
+            <span class="crisis-contact-name">
+              <strong>CVV — Chat e e-mail</strong>
+              <small>cvv.org.br — se preferir não ligar</small>
+            </span>
+            <span class="crisis-contact-num">↗</span>
+          </a>
+          <a class="crisis-contact" href="tel:192">
+            <span class="crisis-contact-name">
+              <strong>SAMU</strong>
+              <small>Emergência médica</small>
+            </span>
+            <span class="crisis-contact-num">192</span>
+          </a>
+          <a class="crisis-contact" href="tel:190">
+            <span class="crisis-contact-name">
+              <strong>Polícia Militar</strong>
+              <small>Risco imediato à segurança</small>
+            </span>
+            <span class="crisis-contact-num">190</span>
+          </a>
+        </div>
+        <p class="crisis-disclaimer">
+          Este widget oferece orientações gerais e não substitui avaliação profissional.
+          Se você ou alguém estiver em risco imediato, ligue 192 ou 190 agora.
+          Procure também um CAPS (Centro de Atenção Psicossocial) da sua cidade para acompanhamento contínuo e gratuito.
+        </p>
+      </div>
+
+    </div>
+  </div>
+  <!-- ================= Fim Widget de Apoio em Crise ================= -->
+
+  <!-- ===================== Modal "Conta criada!" ===================== -->
+  {% if just_registered %}
+  <div class="account-created-modal" id="account-created-modal">
+    <div class="account-created-backdrop" data-close-account-created></div>
+    <div class="account-created-card" role="dialog" aria-modal="true" aria-label="Conta criada com sucesso">
+      <div class="account-created-check" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12.5l5 5L20 7"/>
+        </svg>
+      </div>
+      <h3>Conta criada!</h3>
+      <p>Sua conta foi criada com sucesso.</p>
+      <button type="button" class="account-created-btn" data-close-account-created>Continuar</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var modal = document.getElementById("account-created-modal");
+      if (!modal) return;
+      document.body.classList.add("troca-open"); // reaproveita a trava de scroll já existente
+      function close() {
+        modal.remove();
+        document.body.classList.remove("troca-open");
+      }
+      modal.addEventListener("click", function (e) {
+        if (e.target.closest("[data-close-account-created]")) close();
+      });
+      document.addEventListener("keydown", function onKey(e) {
+        if (e.key === "Escape") {
+          close();
+          document.removeEventListener("keydown", onKey);
+        }
+      });
+    })();
+  </script>
+  {% endif %}
+  <!-- ================= Fim Modal "Conta criada!" ================= -->
+
+  <script src="{{ url_for('static', filename='js/estrela.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/accessibility.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/crisis.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
