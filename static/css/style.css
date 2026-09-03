@@ -437,6 +437,33 @@ body{
 
 .screen-heading>p:last-child strong{color:#fff}
 
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:500;
+  color:#c7d3e8;
+  text-decoration:none;
+  margin-bottom:16px;
+  padding:8px 14px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+  transition:border-color .15s ease,background .15s ease,color .15s ease
+}
+
+.back-link:hover{
+  color:var(--brand);
+  border-color:rgba(79,224,179,.5);
+  background:rgba(79,224,179,.08)
+}
+
+.back-link:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:2px
+}
+
 .talk-layout,
 .onepct-layout,
 .world-layout,
